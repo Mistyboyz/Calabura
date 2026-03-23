@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mic : Electric Car — Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0d0d0d; --bg2:#161616; --bg3:#1e1e1e;
+    --text:#f0ede8; --text2:rgba(240,237,232,0.55); --text3:#6b6760;
+    --gold:#c9a84c; --gold-light:#e8c97a;
+    --green:#2ecc71; --red:#e74c3c; --blue:#3498db; --orange:#f39c12;
+    --border:rgba(201,168,76,0.18); --shadow:0 4px 20px rgba(0,0,0,0.5);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; }
+
+  /* SIDEBAR */
+  .sidebar { width:240px; background:var(--bg2); border-right:1px solid var(--border); display:flex; flex-direction:column; position:fixed; height:100vh; z-index:50; }
+  .sidebar-logo { padding:1.8rem 1.5rem; border-bottom:1px solid var(--border); }
+  .sidebar-logo h1 { font-family:'Playfair Display',serif; font-size:1.3rem; font-weight:900; }
+  .sidebar-logo h1 span { color:var(--gold); }
+  .sidebar-logo p { font-size:.72rem; color:var(--text3); margin-top:.2rem; letter-spacing:.1em; text-transform:uppercase; }
+  .sidebar-nav { flex:1; padding:1rem 0; }
+  .nav-item { display:flex; align-items:center; gap:.8rem; padding:.75rem 1.5rem; cursor:pointer; color:var(--text2); font-size:.88rem; font-weight:500; transition:all .2s; border-left:3px solid transparent; }
+  .nav-item:hover { color:var(--text); background:rgba(255,255,255,.03); }
+  .nav-item.active { color:var(--gold); border-left-color:var(--gold); background:rgba(201,168,76,.07); }
+  .nav-icon { font-size:1rem; width:20px; text-align:center; }
+  .sidebar-footer { padding:1.2rem 1.5rem; border-top:1px solid var(--border); font-size:.78rem; color:var(--text3); }
+  .online-dot { display:inline-block; width:7px; height:7px; background:var(--green); border-radius:50%; margin-right:.4rem; animation:pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  /* MAIN */
+  .main { margin-left:240px; flex:1; padding:2rem; min-height:100vh; }
+
+  /* HEADER */
+  .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem; }
+  .page-header h2 { font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:700; }
+  .header-actions { display:flex; gap:.8rem; align-items:center; }
+  .btn-refresh { background:var(--bg3); border:1px solid var(--border); color:var(--text); padding:.5rem 1rem; font-size:.85rem; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .2s; display:flex; align-items:center; gap:.4rem; }
+  .btn-refresh:hover { border-color:var(--gold); color:var(--gold); }
+  .last-updated { font-size:.78rem; color:var(--text3); }
+
+  /* STAT CARDS */
+  .stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:2rem; }
+  .stat-card { background:var(--bg2); border:1px solid var(--border); padding:1.4rem 1.6rem; position:relative; overflow:hidden; }
+  .stat-card::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; }
+  .stat-card.gold::after { background:var(--gold); }
+  .stat-card.green::after { background:var(--green); }
+  .stat-card.blue::after { background:var(--blue); }
+  .stat-card.orange::after { background:var(--orange); }
+  .stat-label { font-size:.72rem; letter-spacing:.15em; text-transform:uppercase; color:var(--text3); margin-bottom:.5rem; }
+  .stat-value { font-family:'Playfair Display',serif; font-size:2.2rem; font-weight:900; }
+  .stat-card.gold .stat-value { color:var(--gold); }
+  .stat-card.green .stat-value { color:var(--green); }
+  .stat-card.blue .stat-value { color:var(--blue); }
+  .stat-card.orange .stat-value { color:var(--orange); }
+  .stat-sub { font-size:.78rem; color:var(--text3); margin-top:.3rem; }
+
+  /* FILTERS */
+  .filters { display:flex; gap:.8rem; margin-bottom:1.5rem; flex-wrap:wrap; align-items:center; }
+  .filter-btn { background:var(--bg3); border:1px solid var(--border); color:var(--text2); padding:.4rem .9rem; font-size:.8rem; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .2s; }
+  .filter-btn:hover,.filter-btn.active { background:rgba(201,168,76,.1); border-color:var(--gold); color:var(--gold); }
+  .search-box { background:var(--bg3); border:1px solid var(--border); color:var(--text); padding:.42rem .9rem; font-size:.85rem; font-family:'DM Sans',sans-serif; outline:none; flex:1; min-width:200px; max-width:300px; }
+  .search-box:focus { border-color:var(--gold); }
+  .search-box::placeholder { color:var(--text3); }
+
+  /* TABLE */
+  .table-wrap { background:var(--bg2); border:1px solid var(--border); overflow:hidden; }
+  .table-head { padding:1rem 1.5rem; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+  .table-head h3 { font-size:.9rem; font-weight:600; letter-spacing:.05em; }
+  .table-count { font-size:.78rem; color:var(--text3); }
+  table { width:100%; border-collapse:collapse; }
+  thead th { padding:.8rem 1rem; text-align:left; font-size:.7rem; letter-spacing:.15em; text-transform:uppercase; color:var(--text3); font-weight:600; border-bottom:1px solid var(--border); }
+  tbody tr { border-bottom:1px solid rgba(201,168,76,.06); transition:background .15s; }
+  tbody tr:hover { background:rgba(255,255,255,.02); }
+  tbody tr:last-child { border-bottom:none; }
+  td { padding:.9rem 1rem; font-size:.88rem; vertical-align:middle; }
+  .car-cell { display:flex; align-items:center; gap:.8rem; }
+  .car-thumb { width:52px; height:36px; object-fit:cover; border:1px solid var(--border); flex-shrink:0; }
+  .car-thumb-fallback { width:52px; height:36px; background:var(--bg3); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; }
+  .car-cell-info { line-height:1.4; }
+  .car-cell-name { font-weight:600; font-size:.88rem; }
+  .car-cell-model { font-size:.74rem; color:var(--text3); }
+  .customer-name { font-weight:600; }
+  .customer-contact { font-size:.76rem; color:var(--text3); margin-top:.1rem; }
+  .date-cell { font-size:.82rem; line-height:1.5; }
+  .date-arrow { color:var(--text3); margin:0 .2rem; }
+  .price-cell { font-family:'Playfair Display',serif; font-weight:700; color:var(--gold); font-size:1rem; }
+  .days-badge { background:rgba(201,168,76,.1); border:1px solid var(--border); color:var(--gold); padding:.15rem .5rem; font-size:.78rem; font-weight:700; font-family:'Playfair Display',serif; }
+  .date-cell { font-family:'Playfair Display',serif; font-size:.85rem; }
+
+  /* STATUS BADGE */
+  .status { display:inline-flex; align-items:center; gap:.35rem; padding:.28rem .7rem; font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; border:1px solid; transition:all .2s; }
+  .status.pending { color:var(--orange); border-color:rgba(243,156,18,.3); background:rgba(243,156,18,.08); }
+  .status.confirmed { color:var(--green); border-color:rgba(46,204,113,.3); background:rgba(46,204,113,.08); }
+  .status.completed { color:var(--blue); border-color:rgba(52,152,219,.3); background:rgba(52,152,219,.08); }
+  .status.cancelled { color:var(--red); border-color:rgba(231,76,60,.3); background:rgba(231,76,60,.08); }
+  .status::before { content:''; width:6px; height:6px; border-radius:50%; background:currentColor; }
+
+  /* ACTION BUTTONS */
+  .action-btns { display:flex; gap:.4rem; }
+  .act-btn { background:none; border:1px solid var(--border); color:var(--text2); padding:.3rem .6rem; font-size:.78rem; cursor:pointer; transition:all .15s; }
+  .act-btn:hover { border-color:var(--gold); color:var(--gold); }
+  .act-btn.danger:hover { border-color:var(--red); color:var(--red); }
+
+  /* DETAIL MODAL */
+  .detail-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.82); backdrop-filter:blur(6px); z-index:200; justify-content:center; align-items:center; padding:1rem; }
+  .detail-overlay.open { display:flex; }
+  .detail-modal { background:var(--bg2); border:1px solid var(--border); max-width:600px; width:100%; max-height:90vh; overflow-y:auto; padding:2rem; animation:slideUp .25s ease; }
+  .detail-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.8rem; padding-bottom:1.2rem; border-bottom:1px solid var(--border); }
+  .detail-ref { font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:900; color:var(--gold); }
+  .detail-date { font-size:.78rem; color:var(--text3); margin-top:.2rem; }
+  .close-btn { background:none; border:1px solid var(--border); color:var(--text2); width:32px; height:32px; cursor:pointer; font-size:1rem; transition:all .2s; }
+  .close-btn:hover { border-color:var(--gold); color:var(--gold); }
+  .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; margin-bottom:1.5rem; }
+  .detail-field label { font-size:.68rem; letter-spacing:.2em; text-transform:uppercase; color:var(--gold); display:block; margin-bottom:.3rem; font-weight:600; }
+  .detail-field p { font-size:.92rem; }
+  .detail-car { display:flex; gap:1rem; align-items:center; padding:1rem; background:rgba(201,168,76,.05); border:1px solid var(--border); margin-bottom:1.5rem; }
+  .detail-car img { width:120px; height:75px; object-fit:cover; }
+  .detail-car-info h4 { font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; }
+  .detail-car-info p { font-size:.82rem; color:var(--text3); margin-top:.2rem; }
+  .detail-total { display:flex; justify-content:space-between; align-items:center; padding:1rem; border:1px solid var(--border); margin-bottom:1.5rem; background:rgba(201,168,76,.04); }
+  .detail-total-label { font-size:.8rem; color:var(--text3); }
+  .detail-total-amount { font-family:'Playfair Display',serif; font-size:1.6rem; font-weight:900; color:var(--gold); }
+  .status-actions { display:flex; gap:.6rem; flex-wrap:wrap; }
+  .status-btn { padding:.5rem 1rem; border:1px solid; font-family:'DM Sans',sans-serif; font-size:.8rem; font-weight:600; cursor:pointer; text-transform:uppercase; letter-spacing:.08em; transition:all .2s; background:transparent; }
+  .status-btn.confirm { color:var(--green); border-color:var(--green); }
+  .status-btn.confirm:hover { background:var(--green); color:#fff; }
+  .status-btn.complete { color:var(--blue); border-color:var(--blue); }
+  .status-btn.complete:hover { background:var(--blue); color:#fff; }
+  .status-btn.cancel { color:var(--red); border-color:var(--red); }
+  .status-btn.cancel:hover { background:var(--red); color:#fff; }
+
+  /* EMPTY / LOADING */
+  .empty-state,.loading-state { text-align:center; padding:4rem 2rem; color:var(--text3); }
+  .empty-icon,.loading-icon { font-size:2.5rem; margin-bottom:1rem; }
+  .spinner { display:inline-block; width:30px; height:30px; border:3px solid var(--border); border-top-color:var(--gold); border-radius:50%; animation:spin .8s linear infinite; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+
+  /* LOGIN */
+  .login-screen { position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:999; }
+  .login-box { background:var(--bg2); border:1px solid var(--border); padding:2.5rem; width:360px; }
+  .login-box h2 { font-family:'Playfair Display',serif; font-size:1.6rem; margin-bottom:.4rem; }
+  .login-box p { color:var(--text3); font-size:.85rem; margin-bottom:1.8rem; }
+  .login-field { margin-bottom:1.1rem; }
+  .login-field label { font-size:.7rem; letter-spacing:.2em; text-transform:uppercase; color:var(--gold); display:block; margin-bottom:.4rem; font-weight:600; }
+  .login-field input { width:100%; background:rgba(255,255,255,.04); border:1px solid var(--border); color:var(--text); padding:.8rem 1rem; font-family:'DM Sans',sans-serif; font-size:.95rem; outline:none; transition:border .2s; }
+  .login-field input:focus { border-color:var(--gold); }
+  .login-btn { width:100%; background:var(--gold); color:#0a0a0a; border:none; padding:.9rem; font-family:'DM Sans',sans-serif; font-weight:700; font-size:.95rem; cursor:pointer; margin-top:.5rem; transition:background .2s; }
+  .login-btn:hover { background:var(--gold-light); }
+  .login-error { color:var(--red); font-size:.82rem; margin-top:.6rem; display:none; }
+
+  /* FIREBASE CONFIG NOTICE */
+  .config-banner { background:rgba(243,156,18,.1); border:1px solid rgba(243,156,18,.3); padding:1rem 1.5rem; margin-bottom:1.5rem; font-size:.85rem; color:var(--orange); display:flex; gap:.8rem; align-items:flex-start; }
+  .config-banner.hidden { display:none; }
+
+  @keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+  @media(max-width:900px) { .sidebar{display:none} .main{margin-left:0} .stat-grid{grid-template-columns:repeat(2,1fr)} }
+  @media(max-width:600px) { .stat-grid{grid-template-columns:1fr 1fr} table thead{display:none} tbody tr{display:block;padding:.8rem;border-bottom:1px solid var(--border)} td{display:block;padding:.2rem 0} }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="login-screen">
+  <div class="login-box">
+    <h2>Admin <span style="color:var(--gold)">Login</span></h2>
+    <p>Mic : Electric Car — ระบบจัดการการจอง</p>
+    <div class="login-field">
+      <label>Username</label>
+      <input type="text" id="login-user" placeholder="admin" value="admin">
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <p class="login-error" id="login-error">❌ รหัสผ่านไม่ถูกต้อง</p>
+    <p style="font-size:.75rem;color:var(--text3);margin-top:1rem">Default: admin / drivenow2026</p>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <h1>Mic : <span>Electric Car</span></h1>
+    <p>Admin Panel</p>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-item active" onclick="showTab('bookings')"><span class="nav-icon">📋</span>การจองทั้งหมด</div>
+    <div class="nav-item" onclick="showTab('cars')"><span class="nav-icon">🚗</span>รถทั้งหมด</div>
+    <div class="nav-item" onclick="window.open('index.html','_blank')"><span class="nav-icon">🌐</span>หน้าเว็บลูกค้า</div>
+    <div class="nav-item" onclick="doLogout()" style="margin-top:auto"><span class="nav-icon">🚪</span>ออกจากระบบ</div>
+  </nav>
+  <div class="sidebar-footer">
+    <span class="online-dot"></span>ออนไลน์ · อัปเดต realtime
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+  <!-- Firebase Config Banner -->
+  <div class="config-banner" id="config-banner">
+    ⚠️ <div><strong>ยังไม่ได้ตั้งค่า Firebase</strong> — แก้ไข <code>FIREBASE_URL</code> ในไฟล์นี้และ index.html ให้เป็น Project ID ของคุณ ดูวิธีตั้งค่าด้านล่าง<br>
+    <small style="opacity:.7">ตอนนี้แสดงข้อมูล Demo เพื่อให้เห็นหน้าตา</small></div>
+  </div>
+
+  <!-- BOOKINGS TAB -->
+  <div id="tab-bookings">
+    <div class="page-header">
+      <div>
+        <h2>การจองทั้งหมด</h2>
+        <p style="font-size:.82rem;color:var(--text3);margin-top:.2rem">รายการจองรถทั้งหมดในระบบ</p>
+      </div>
+      <div class="header-actions">
+        <span class="last-updated" id="last-updated">—</span>
+        <button class="btn-refresh" onclick="loadBookings()">🔄 รีเฟรช</button>
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card gold"><div class="stat-label">การจองทั้งหมด</div><div class="stat-value" id="s-total">0</div><div class="stat-sub">ทุกสถานะ</div></div>
+      <div class="stat-card green"><div class="stat-label">รอยืนยัน</div><div class="stat-value" id="s-pending">0</div><div class="stat-sub">ต้องดำเนินการ</div></div>
+      <div class="stat-card blue"><div class="stat-label">ยืนยันแล้ว</div><div class="stat-value" id="s-confirmed">0</div><div class="stat-sub">เตรียมรับรถ</div></div>
+      <div class="stat-card orange"><div class="stat-label">รายได้รวม</div><div class="stat-value" id="s-revenue">฿0</div><div class="stat-sub">จากการจองทั้งหมด</div></div>
+    </div>
+
+    <div class="filters">
+      <button class="filter-btn active" onclick="filterStatus('all',this)">ทั้งหมด</button>
+      <button class="filter-btn" onclick="filterStatus('pending',this)">🟡 รอยืนยัน</button>
+      <button class="filter-btn" onclick="filterStatus('confirmed',this)">🟢 ยืนยันแล้ว</button>
+      <button class="filter-btn" onclick="filterStatus('completed',this)">🔵 เสร็จสิ้น</button>
+      <button class="filter-btn" onclick="filterStatus('cancelled',this)">🔴 ยกเลิก</button>
+      <input class="search-box" type="text" placeholder="🔍 ค้นหาชื่อ / Ref / รถ..." oninput="searchBookings(this.value)">
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-head">
+        <h3>รายการจอง</h3>
+        <span class="table-count" id="table-count">0 รายการ</span>
+      </div>
+      <div id="table-body-wrap">
+        <div class="loading-state"><div class="spinner"></div><p style="margin-top:1rem">กำลังโหลด...</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARS TAB -->
+  <div id="tab-cars" style="display:none">
+    <div class="page-header"><h2>รถทั้งหมด</h2></div>
+    <div class="stat-grid" id="cars-grid" style="grid-template-columns:repeat(3,1fr)"></div>
+  </div>
+
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="detail-overlay" id="detail-overlay">
+  <div class="detail-modal" id="detail-modal">
+    <div class="detail-header">
+      <div>
+        <div class="detail-ref" id="d-ref">—</div>
+        <div class="detail-date" id="d-date">—</div>
+      </div>
+      <button class="close-btn" onclick="closeDetail()">✕</button>
+    </div>
+    <div class="detail-car" id="d-car"></div>
+    <div class="detail-grid" id="d-info"></div>
+    <div class="detail-total" id="d-total"></div>
+    <div>
+      <p style="font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.8rem">เปลี่ยนสถานะ</p>
+      <div class="status-actions" id="d-actions"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============ CONFIG ============
+const FIREBASE_URL = 'https://calabura-ea686-default-rtdb.asia-southeast1.firebasedatabase.app';
+const ADMIN_USER = 'admin';
+const ADMIN_PASS = 'drivenow2026';
+
+// ============ DEMO DATA (ใช้เมื่อไม่มี Firebase) ============
+const DEMO = [
+  {ref:'DN001234',name:'สมชาย ใจดี',phone:'081-234-5678',email:'somchai@email.com',idCard:'1234567890123',
+   payment:'บัตรเครดิต/เดบิต',insurance:'ประกันชั้น 1 (+฿300/วัน)',
+   carId:3,carName:'BMW 3 Series',carModel:'2024 · Auto · Petrol',
+   carImg:'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&q=80',
+   pickupDate:'2026-03-25',returnDate:'2026-03-28',days:3,pricePerDay:3500,total:10500,
+   status:'confirmed',createdAt:'2026-03-23T09:15:00.000Z'},
+  {ref:'DN005678',name:'นภา รักสวย',phone:'089-876-5432',email:'napa@email.com',idCard:'9876543210987',
+   payment:'QR Code',insurance:'ประกันชั้น 2+ (+฿150/วัน)',
+   carId:4,carName:'Honda CR-V',carModel:'2024 · Auto · Hybrid',
+   carImg:'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&q=80',
+   pickupDate:'2026-03-26',returnDate:'2026-03-29',days:3,pricePerDay:1800,total:5400,
+   status:'pending',createdAt:'2026-03-23T11:30:00.000Z'},
+  {ref:'DN009999',name:'James Wilson',phone:'090-111-2222',email:'james@email.com',idCard:'PASSPORT: AB123456',
+   payment:'Credit / Debit Card',insurance:'Full Coverage (+฿300/day)',
+   carId:3,carName:'BMW 3 Series',carModel:'2024 · Auto · Petrol',
+   carImg:'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&q=80',
+   pickupDate:'2026-03-24',returnDate:'2026-03-26',days:2,pricePerDay:3500,total:7000,
+   status:'completed',createdAt:'2026-03-22T14:00:00.000Z'},
+  {ref:'DN007777',name:'วิชัย มีสุข',phone:'062-555-9999',email:'wichai@email.com',idCard:'1111111111111',
+   payment:'โอนเงิน',insurance:'ไม่เพิ่มประกัน',
+   carId:1,carName:'Toyota Yaris',carModel:'2024 · Auto · Petrol',
+   carImg:'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=400&q=80',
+   pickupDate:'2026-03-27',returnDate:'2026-03-30',days:3,pricePerDay:800,total:2400,
+   status:'pending',createdAt:'2026-03-23T16:45:00.000Z'},
+  {ref:'DN003333',name:'มาลี ดอกไม้',phone:'085-333-4444',email:'malee@email.com',idCard:'5555555555555',
+   payment:'ชำระที่รับรถ',insurance:'ประกันชั้น 1 (+฿300/วัน)',
+   carId:5,carName:'Ford Everest',carModel:'2024 · Auto · Diesel',
+   carImg:'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=400&q=80',
+   pickupDate:'2026-03-23',returnDate:'2026-03-24',days:1,pricePerDay:2200,total:2200,
+   status:'cancelled',createdAt:'2026-03-21T08:00:00.000Z'},
+];
+
+const BASE_IMG = 'https://mistyboyz.github.io/Car-booking/';
+const CARS_DATA = [
+  {id:1,name:'Toyota Yaris',model:'Eco Car · Auto · Petrol',price:800,img:BASE_IMG+'toyota-yaris.png'},
+  {id:2,name:'Honda City',model:'Sedan · Auto · Petrol',price:1100,img:BASE_IMG+'Honda-City.png'},
+  {id:3,name:'BMW 3 Series',model:'Luxury · Auto · Petrol',price:3500,img:BASE_IMG+'BMW-3-Series.png'},
+  {id:4,name:'Honda CR-V',model:'SUV · Auto · Hybrid',price:1800,img:BASE_IMG+'honda-cr-v.png'},
+  {id:5,name:'Ford Mustang GT',model:'Sports · Manual · V8 5.0L',price:5500,img:BASE_IMG+'Ford-mustang.png'},
+  {id:6,name:'Nissan GT-R',model:'Luxury Sports · Auto · Twin-Turbo V6',price:8000,img:BASE_IMG+'nissan-GTR.png'},
+];
+
+let allBookings = [];
+let currentFilter = 'all';
+let searchQuery = '';
+let usingDemo = false;
+let currentBooking = null;
+
+// ============ LOGIN ============
+function doLogin() {
+  const u = document.getElementById('login-user').value;
+  const p = document.getElementById('login-pass').value;
+  if (u === ADMIN_USER && p === ADMIN_PASS) {
+    document.getElementById('login-screen').style.display = 'none';
+    loadBookings();
+    renderCars();
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+  }
+}
+function doLogout() {
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+// ============ TABS ============
+function showTab(tab) {
+  document.querySelectorAll('.main > div[id^="tab-"]').forEach(el => el.style.display='none');
+  document.getElementById('tab-'+tab).style.display = 'block';
+  document.querySelectorAll('.nav-item').forEach((el,i) => {
+    el.classList.toggle('active', (tab==='bookings'&&i===0)||(tab==='cars'&&i===1));
+  });
+}
+
+// ============ LOAD BOOKINGS ============
+async function loadBookings() {
+  document.getElementById('table-body-wrap').innerHTML = '<div class="loading-state"><div class="spinner"></div><p style="margin-top:1rem">กำลังโหลดข้อมูล...</p></div>';
+  try {
+    if (FIREBASE_URL.includes('YOUR_PROJECT_ID')) throw new Error('not configured');
+    const res = await fetch(`${FIREBASE_URL}/bookings.json`);
+    if (!res.ok) throw new Error('fetch error');
+    const data = await res.json();
+    allBookings = data ? Object.values(data) : [];
+    usingDemo = false;
+    document.getElementById('config-banner').classList.add('hidden');
+  } catch(e) {
+    allBookings = [...DEMO];
+    usingDemo = true;
+  }
+  allBookings.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+  updateStats();
+  renderTable();
+  document.getElementById('last-updated').textContent = 'อัปเดต: ' + new Date().toLocaleTimeString('th-TH');
+}
+
+// ============ STATS ============
+function updateStats() {
+  const total = allBookings.length;
+  const pending = allBookings.filter(b=>b.status==='pending').length;
+  const confirmed = allBookings.filter(b=>b.status==='confirmed').length;
+  const revenue = allBookings.filter(b=>b.status!=='cancelled').reduce((s,b)=>s+(b.total||0),0);
+  document.getElementById('s-total').textContent = total;
+  document.getElementById('s-pending').textContent = pending;
+  document.getElementById('s-confirmed').textContent = confirmed;
+  document.getElementById('s-revenue').textContent = '฿'+revenue.toLocaleString();
+}
+
+// ============ RENDER TABLE ============
+function renderTable() {
+  let data = allBookings;
+  if (currentFilter !== 'all') data = data.filter(b => b.status === currentFilter);
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    data = data.filter(b => b.name?.toLowerCase().includes(q) || b.ref?.toLowerCase().includes(q) || b.carName?.toLowerCase().includes(q) || b.phone?.includes(q));
+  }
+  document.getElementById('table-count').textContent = data.length + ' รายการ';
+  if (data.length === 0) {
+    document.getElementById('table-body-wrap').innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><p>ไม่พบรายการจอง</p></div>';
+    return;
+  }
+  document.getElementById('table-body-wrap').innerHTML = `
+    <table>
+      <thead><tr>
+        <th>Ref</th><th>รถ</th><th>ลูกค้า</th><th>วันที่</th><th>จำนวนวัน</th><th>ราคารวม</th><th>สถานะ</th><th>จัดการ</th>
+      </tr></thead>
+      <tbody>${data.map(b => `
+        <tr>
+          <td><span style="font-family:'Playfair Display',serif;font-weight:700;color:var(--gold);font-size:.9rem">${b.ref}</span><br><span style="font-size:.72rem;color:var(--text3)">${formatDate(b.createdAt)}</span></td>
+          <td><div class="car-cell"><img src="${b.carImg||''}" class="car-thumb" onerror="this.style.display='none'" alt=""><div class="car-cell-info"><div class="car-cell-name">${b.carName}</div><div class="car-cell-model">${b.carModel||''}</div></div></div></td>
+          <td><div class="customer-name">${b.name}</div><div class="customer-contact">${b.phone}<br>${b.email}</div></td>
+          <td class="date-cell">${b.pickupDate}<span class="date-arrow">→</span>${b.returnDate}</td>
+          <td><span class="days-badge">${b.days} วัน</span></td>
+          <td class="price-cell">฿${(b.total||0).toLocaleString()}</td>
+          <td><span class="status ${b.status}" onclick="cycleStatus('${b.ref}')">${statusLabel(b.status)}</span></td>
+          <td><div class="action-btns">
+            <button class="act-btn" onclick="openDetail('${b.ref}')">👁 ดู</button>
+            <button class="act-btn danger" onclick="deleteBooking('${b.ref}')">🗑</button>
+          </div></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+function statusLabel(s) {
+  return {pending:'รอยืนยัน',confirmed:'ยืนยันแล้ว',completed:'เสร็จสิ้น',cancelled:'ยกเลิก'}[s]||s;
+}
+function formatDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('th-TH',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
+
+// ============ FILTER & SEARCH ============
+function filterStatus(status, btn) {
+  currentFilter = status;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTable();
+}
+function searchBookings(q) {
+  searchQuery = q;
+  renderTable();
+}
+
+// ============ STATUS ACTIONS ============
+async function cycleStatus(ref) {
+  const order = ['pending','confirmed','completed','cancelled'];
+  const b = allBookings.find(x=>x.ref===ref);
+  if (!b) return;
+  const next = order[(order.indexOf(b.status)+1)%order.length];
+  await updateStatus(ref, next);
+}
+
+async function updateStatus(ref, newStatus) {
+  const b = allBookings.find(x=>x.ref===ref);
+  if (!b) return;
+  b.status = newStatus;
+  if (!usingDemo) {
+    try {
+      await fetch(`${FIREBASE_URL}/bookings/${ref}/status.json`, {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(newStatus)});
+    } catch(e){}
+  }
+  updateStats();
+  renderTable();
+  if (currentBooking?.ref === ref) {
+    currentBooking.status = newStatus;
+    renderDetailActions();
+  }
+}
+
+async function deleteBooking(ref) {
+  if (!confirm(`ลบการจอง ${ref} หรือไม่?`)) return;
+  allBookings = allBookings.filter(x=>x.ref!==ref);
+  if (!usingDemo) {
+    try { await fetch(`${FIREBASE_URL}/bookings/${ref}.json`,{method:'DELETE'}); } catch(e){}
+  }
+  updateStats();
+  renderTable();
+}
+
+// ============ DETAIL MODAL ============
+function openDetail(ref) {
+  const b = allBookings.find(x=>x.ref===ref);
+  if (!b) return;
+  currentBooking = b;
+  document.getElementById('d-ref').textContent = '# ' + b.ref;
+  document.getElementById('d-date').textContent = 'จองเมื่อ: ' + formatDate(b.createdAt);
+  document.getElementById('d-car').innerHTML = `
+    <img src="${b.carImg||''}" style="width:120px;height:75px;object-fit:cover;border:1px solid var(--border)" onerror="this.style.display='none'" alt="">
+    <div><h4 style="font-family:'Playfair Display',serif;font-size:1.1rem">${b.carName}</h4><p style="font-size:.82rem;color:var(--text3);margin-top:.2rem">${b.carModel||''}</p><p style="font-size:.82rem;color:var(--text3)">฿${(b.pricePerDay||0).toLocaleString()} / วัน</p></div>`;
+  document.getElementById('d-info').innerHTML = `
+    <div class="detail-field"><label>ชื่อลูกค้า</label><p>${b.name}</p></div>
+    <div class="detail-field"><label>เบอร์โทร</label><p>${b.phone}</p></div>
+    <div class="detail-field"><label>อีเมล</label><p>${b.email}</p></div>
+    <div class="detail-field"><label>บัตรประชาชน</label><p>${b.idCard||'-'}</p></div>
+    <div class="detail-field"><label>วันรับรถ</label><p>${b.pickupDate}</p></div>
+    <div class="detail-field"><label>วันคืนรถ</label><p>${b.returnDate} (${b.days} วัน)</p></div>
+    <div class="detail-field"><label>ชำระเงิน</label><p>${b.payment||'-'}</p></div>
+    <div class="detail-field"><label>ประกัน</label><p>${b.insurance||'-'}</p></div>`;
+  document.getElementById('d-total').innerHTML = `
+    <div><div class="detail-total-label">ราคารวมทั้งหมด</div></div>
+    <div class="detail-total-amount">฿${(b.total||0).toLocaleString()}</div>`;
+  renderDetailActions();
+  document.getElementById('detail-overlay').classList.add('open');
+}
+
+function renderDetailActions() {
+  const b = currentBooking;
+  document.getElementById('d-actions').innerHTML = `
+    <span class="status ${b.status}" style="margin-right:.5rem">${statusLabel(b.status)}</span>
+    ${b.status!=='confirmed'&&b.status!=='completed'&&b.status!=='cancelled' ? `<button class="status-btn confirm" onclick="updateStatus('${b.ref}','confirmed')">✅ ยืนยัน</button>` : ''}
+    ${b.status==='confirmed' ? `<button class="status-btn complete" onclick="updateStatus('${b.ref}','completed')">🏁 เสร็จสิ้น</button>` : ''}
+    ${b.status!=='cancelled'&&b.status!=='completed' ? `<button class="status-btn cancel" onclick="updateStatus('${b.ref}','cancelled')">❌ ยกเลิก</button>` : ''}`;
+}
+
+function closeDetail() {
+  document.getElementById('detail-overlay').classList.remove('open');
+  currentBooking = null;
+}
+
+// ============ CARS TAB ============
+function renderCars() {
+  document.getElementById('cars-grid').innerHTML = CARS_DATA.map(c => `
+    <div style="background:var(--bg2);border:1px solid var(--border);overflow:hidden">
+      <img src="${c.img}" style="width:100%;height:140px;object-fit:cover;display:block" onerror="this.style.display='none'" alt="">
+      <div style="padding:1rem">
+        <div style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.3rem">${c.model}</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;margin-bottom:.5rem">${c.name}</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;color:var(--gold)">฿${c.price.toLocaleString()}<span style="font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--text3);font-weight:400"> / วัน</span></div>
+      </div>
+    </div>`).join('');
+}
+
+// Close modal on outside click
+document.getElementById('detail-overlay').addEventListener('click', function(e) { if(e.target===this) closeDetail(); });
+</script>
+</body>
+</html>

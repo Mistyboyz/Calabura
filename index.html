@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mic : Electric Car — Car Booking</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a; --bg2: #141414; --text: #f5f3ef;
+    --text2: rgba(245,243,239,0.6); --text3: #6b6760;
+    --gold: #c9a84c; --gold-light: #e8c97a;
+    --border: rgba(201,168,76,0.2); --card: #141414;
+    --input-bg: rgba(245,243,239,0.05); --nav-bg: rgba(10,10,10,0.88);
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+  body.light {
+    --bg: #f7f5f0; --bg2: #ffffff; --text: #1a1a1a;
+    --text2: rgba(26,26,26,0.6); --text3: #999;
+    --border: rgba(180,140,50,0.25); --card: #ffffff;
+    --input-bg: rgba(0,0,0,0.04); --nav-bg: rgba(247,245,240,0.95);
+    --shadow: 0 4px 24px rgba(0,0,0,0.1);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden; transition:background .3s,color .3s; }
+
+  nav { position:fixed; top:0; width:100%; z-index:100; display:flex; justify-content:space-between; align-items:center; padding:1rem 2.5rem; background:var(--nav-bg); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); gap:1rem; transition:background .3s; }
+  .logo { display:flex; align-items:center; gap:.5rem; white-space:nowrap; }
+  .logo-text { font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:900; color:var(--text); }
+  .logo-text span { color:var(--gold); }
+  nav ul { list-style:none; display:flex; gap:1.5rem; }
+  nav ul a { color:var(--text2); text-decoration:none; font-size:.85rem; font-weight:500; letter-spacing:.05em; text-transform:uppercase; transition:color .2s; }
+  nav ul a:hover { color:var(--gold); }
+  .nav-controls { display:flex; align-items:center; gap:.5rem; flex-shrink:0; }
+
+  .lang-wrapper { position:relative; }
+  .lang-btn { background:var(--input-bg); border:1px solid var(--border); color:var(--text); padding:.42rem .8rem; font-family:'DM Sans',sans-serif; font-size:.8rem; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:.3rem; transition:all .2s; white-space:nowrap; }
+  .lang-btn:hover { border-color:var(--gold); color:var(--gold); }
+  .lang-dropdown { display:none; position:absolute; top:calc(100% + 6px); right:0; background:var(--card); border:1px solid var(--border); min-width:140px; box-shadow:var(--shadow); z-index:300; }
+  .lang-dropdown.open { display:block; }
+  .lang-option { display:flex; align-items:center; gap:.6rem; padding:.55rem 1rem; cursor:pointer; font-size:.85rem; color:var(--text2); transition:all .15s; }
+  .lang-option:hover,.lang-option.active { background:rgba(201,168,76,.1); color:var(--gold); }
+
+  .theme-btn { background:var(--input-bg); border:1px solid var(--border); color:var(--text); width:34px; height:34px; cursor:pointer; font-size:.95rem; display:flex; align-items:center; justify-content:center; transition:all .2s; }
+  .theme-btn:hover { border-color:var(--gold); }
+  .nav-btn { background:var(--gold); color:#0a0a0a; border:none; padding:.48rem 1.1rem; font-family:'DM Sans',sans-serif; font-weight:700; font-size:.8rem; cursor:pointer; text-transform:uppercase; letter-spacing:.05em; transition:background .2s; white-space:nowrap; }
+  .nav-btn:hover { background:var(--gold-light); }
+
+  .hero { min-height:100vh; display:flex; flex-direction:column; justify-content:center; padding:8rem 3rem 4rem; position:relative; overflow:hidden; }
+  .hero::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 70% 50%,rgba(201,168,76,.08) 0%,transparent 60%); }
+  .hero-eyebrow { font-size:.75rem; letter-spacing:.3em; text-transform:uppercase; color:var(--gold); margin-bottom:1.5rem; font-weight:600; }
+  .hero h1 { font-family:'Playfair Display',serif; font-size:clamp(2.8rem,6vw,6rem); font-weight:900; line-height:1.05; max-width:700px; animation:fadeUp .8s ease both; color:var(--text); }
+  .hero h1 em { color:var(--gold); font-style:italic; }
+  .hero-sub { margin-top:1.5rem; max-width:460px; color:var(--text2); font-size:1rem; line-height:1.7; animation:fadeUp .8s .15s ease both; }
+  .hero-cta { display:flex; gap:1rem; margin-top:2.5rem; animation:fadeUp .8s .3s ease both; }
+  .btn-primary { background:var(--gold); color:#0a0a0a; border:none; padding:.9rem 2.2rem; font-family:'DM Sans',sans-serif; font-weight:700; font-size:.95rem; cursor:pointer; transition:all .2s; }
+  .btn-primary:hover { background:var(--gold-light); transform:translateY(-2px); }
+  .btn-outline { background:transparent; color:var(--text); border:1px solid var(--border); padding:.9rem 2rem; font-family:'DM Sans',sans-serif; font-weight:500; font-size:.95rem; cursor:pointer; transition:all .2s; }
+  .btn-outline:hover { border-color:var(--gold); color:var(--gold); }
+  .hero-graphic { position:absolute; right:-5%; top:50%; transform:translateY(-50%); font-size:20rem; opacity:.04; pointer-events:none; }
+
+  .stats-bar { display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid var(--border); border-bottom:1px solid var(--border); background:var(--bg2); transition:background .3s; }
+  .stat { padding:2.5rem 2rem; text-align:center; border-right:1px solid var(--border); }
+  .stat:last-child { border-right:none; }
+  .stat-num { font-family:'Playfair Display',serif; font-size:2.5rem; font-weight:900; color:var(--gold); }
+  .stat-label { color:var(--text3); font-size:.85rem; margin-top:.3rem; }
+
+  .booking-section { padding:5rem 3rem; background:var(--bg2); border-top:1px solid var(--border); border-bottom:1px solid var(--border); transition:background .3s; }
+  .section-title { font-family:'Playfair Display',serif; font-size:2rem; font-weight:700; margin-bottom:2rem; color:var(--text); }
+  .section-title span { color:var(--gold); }
+  .booking-form { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1.2rem; align-items:end; }
+  .form-group { display:flex; flex-direction:column; gap:.5rem; }
+  .form-group label { font-size:.72rem; letter-spacing:.2em; text-transform:uppercase; color:var(--gold); font-weight:600; }
+  .form-group input,.form-group select { background:var(--input-bg); border:1px solid var(--border); color:var(--text); padding:.85rem 1rem; font-family:'DM Sans',sans-serif; font-size:.95rem; outline:none; transition:border-color .2s; appearance:none; }
+  .form-group select option { background:var(--card); color:var(--text); }
+  .form-group input:focus,.form-group select:focus { border-color:var(--gold); }
+  .form-group input::placeholder { color:var(--text3); }
+  .btn-search { background:var(--gold); color:#0a0a0a; border:none; padding:.85rem 2rem; font-family:'DM Sans',sans-serif; font-weight:700; font-size:.95rem; cursor:pointer; white-space:nowrap; transition:all .2s; height:fit-content; }
+  .btn-search:hover { background:var(--gold-light); }
+
+  .fleet-section { padding:5rem 3rem; background:var(--bg); transition:background .3s; }
+  .fleet-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:1.5rem; margin-top:2.5rem; }
+  .car-card { background:var(--card); border:1px solid var(--border); padding:1.8rem; transition:all .3s; cursor:pointer; position:relative; overflow:hidden; }
+  .car-card::before { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:var(--gold); transform:scaleX(0); transform-origin:left; transition:transform .3s; }
+  .car-card:hover { border-color:rgba(201,168,76,.5); transform:translateY(-4px); box-shadow:var(--shadow); }
+  .car-card:hover::before { transform:scaleX(1); }
+  .car-emoji { font-size:3.5rem; margin-bottom:1rem; display:block; }
+  .car-img-wrap { width:100%; height:160px; overflow:hidden; margin-bottom:1.2rem; background:rgba(201,168,76,0.05); }
+  .car-img { width:100%; height:100%; object-fit:cover; transition:transform .4s; display:block; }
+  .car-card:hover .car-img { transform:scale(1.05); }
+  .car-category { font-size:.7rem; letter-spacing:.25em; text-transform:uppercase; color:var(--gold); font-weight:600; margin-bottom:.4rem; }
+  .car-name { font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:700; margin-bottom:.3rem; color:var(--text); }
+  .car-model { color:var(--text3); font-size:.9rem; margin-bottom:1.2rem; }
+  .car-features { display:flex; gap:.8rem; flex-wrap:wrap; margin-bottom:1.5rem; }
+  .tag { font-size:.75rem; padding:.3rem .7rem; background:rgba(201,168,76,.1); border:1px solid var(--border); color:var(--text2); }
+  .car-price { display:flex; justify-content:space-between; align-items:flex-end; border-top:1px solid var(--border); padding-top:1.2rem; }
+  .price-amount { font-family:'Playfair Display',serif; font-size:2rem; font-weight:900; color:var(--gold); }
+  .price-unit { font-size:.8rem; color:var(--text3); font-family:'Playfair Display',serif; }
+  .btn-book { background:transparent; color:var(--gold); border:1px solid var(--gold); padding:.5rem 1.2rem; font-family:'DM Sans',sans-serif; font-weight:600; font-size:.85rem; cursor:pointer; transition:all .2s; }
+  .btn-book:hover { background:var(--gold); color:#0a0a0a; }
+
+  .modal-overlay { display:none; position:fixed; inset:0; z-index:200; background:rgba(0,0,0,.8); backdrop-filter:blur(6px); justify-content:center; align-items:center; padding:1rem; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:var(--card); border:1px solid var(--border); max-width:560px; width:100%; max-height:90vh; overflow-y:auto; padding:2.5rem; animation:slideUp .3s ease; transition:background .3s; }
+  .modal-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:2rem; }
+  .modal-header h2 { font-family:'Playfair Display',serif; font-size:1.6rem; font-weight:700; color:var(--text); }
+  .modal-close { background:none; border:1px solid var(--border); color:var(--text); width:36px; height:36px; cursor:pointer; font-size:1.1rem; transition:all .2s; }
+  .modal-close:hover { border-color:var(--gold); color:var(--gold); }
+  .modal-form { display:flex; flex-direction:column; gap:1.2rem; }
+  .modal-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+  .modal-summary { background:rgba(201,168,76,.07); border:1px solid var(--border); padding:1.2rem; margin-bottom:.5rem; }
+  .summary-row { display:flex; justify-content:space-between; font-size:.9rem; padding:.3rem 0; border-bottom:1px solid rgba(201,168,76,.1); color:var(--text); font-family:'Playfair Display',serif; }
+  .summary-row:last-child { border-bottom:none; font-weight:700; color:var(--gold); }
+  .summary-label { color:var(--text3); font-family:'Playfair Display',serif; }
+  .success-msg { display:none; text-align:center; padding:2rem; }
+  .success-msg.show { display:block; }
+  .success-icon { font-size:3.5rem; margin-bottom:1rem; }
+  .success-msg h3 { font-family:'Playfair Display',serif; font-size:1.8rem; margin-bottom:.8rem; color:var(--text); }
+  .success-msg p { color:var(--text3); line-height:1.6; }
+  .booking-id { display:inline-block; margin-top:1.2rem; background:rgba(201,168,76,.1); border:1px solid var(--border); padding:.5rem 1.2rem; font-size:1.1rem; letter-spacing:.1em; color:var(--gold); font-family:'Playfair Display',serif; }
+  footer { text-align:center; padding:2.5rem; color:var(--text3); font-size:.85rem; border-top:1px solid var(--border); background:var(--bg2); transition:background .3s; }
+  footer span { color:var(--gold); }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes slideUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+  @media(max-width:768px){ nav{padding:.8rem 1.2rem} nav ul{display:none} .hero{padding:6rem 1.5rem 3rem} .booking-section,.fleet-section{padding:3rem 1.5rem} .stats-bar{grid-template-columns:repeat(2,1fr)} .modal{padding:1.5rem} .modal-row{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo"><div class="logo-text">Mic : <span>Electric Car</span></div></div>
+  <ul>
+    <li><a href="#fleet" data-i18n="nav_fleet">รถทั้งหมด</a></li>
+    <li><a href="#booking" data-i18n="nav_booking">จองรถ</a></li>
+    <li><a href="#" data-i18n="nav_contact">ติดต่อเรา</a></li>
+  </ul>
+  <div class="nav-controls">
+    <div class="lang-wrapper">
+      <button class="lang-btn" onclick="toggleLangMenu()" id="lang-btn">🌐 TH ▾</button>
+      <div class="lang-dropdown" id="lang-dropdown">
+        <div class="lang-option active" onclick="setLang('th')">🇹🇭 ภาษาไทย</div>
+        <div class="lang-option" onclick="setLang('en')">🇬🇧 English</div>
+        <div class="lang-option" onclick="setLang('zh')">🇨🇳 中文</div>
+        <div class="lang-option" onclick="setLang('ja')">🇯🇵 日本語</div>
+        <div class="lang-option" onclick="setLang('ko')">🇰🇷 한국어</div>
+      </div>
+    </div>
+    <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">🌙</button>
+    <button class="nav-btn" onclick="document.getElementById('booking').scrollIntoView({behavior:'smooth'})" data-i18n="nav_book">จองเลย</button>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-graphic">🚗</div>
+  <p class="hero-eyebrow" data-i18n="hero_eyebrow">บริการเช่ารถพรีเมียม · กรุงเทพฯ</p>
+  <h1 data-i18n="hero_title">ขับทุกเส้นทาง<br>ด้วย<em>สไตล์</em>ของคุณ</h1>
+  <p class="hero-sub" data-i18n="hero_sub">เลือกจากรถหลากหลายรุ่น จองง่าย รับรถทันที ราคาโปร่งใส ไม่มีค่าธรรมเนียมซ่อนเร้น</p>
+  <div class="hero-cta">
+    <button class="btn-primary" onclick="document.getElementById('booking').scrollIntoView({behavior:'smooth'})" data-i18n="cta_book">เริ่มจองรถ</button>
+    <button class="btn-outline" onclick="document.getElementById('fleet').scrollIntoView({behavior:'smooth'})" data-i18n="cta_fleet">ดูรถทั้งหมด</button>
+  </div>
+</section>
+
+<div class="stats-bar">
+  <div class="stat"><div class="stat-num">500+</div><div class="stat-label" data-i18n="stat1">รถพร้อมให้เช่า</div></div>
+  <div class="stat"><div class="stat-num">24/7</div><div class="stat-label" data-i18n="stat2">บริการตลอดเวลา</div></div>
+  <div class="stat"><div class="stat-num">50K+</div><div class="stat-label" data-i18n="stat3">ลูกค้าพึงพอใจ</div></div>
+  <div class="stat"><div class="stat-num">4.9★</div><div class="stat-label" data-i18n="stat4">คะแนนรีวิว</div></div>
+</div>
+
+<section class="booking-section" id="booking">
+  <h2 class="section-title"><span data-i18n="search_pre">ค้นหา</span><span data-i18n="search_span">รถว่าง</span></h2>
+  <div class="booking-form">
+    <div class="form-group">
+      <label data-i18n="label_pickup">📍 สถานที่รับรถ</label>
+      <select>
+        <option data-i18n="loc1">สนามบินสุวรรณภูมิ</option>
+        <option data-i18n="loc2">สนามบินดอนเมือง</option>
+        <option data-i18n="loc3">สยามพารากอน</option>
+        <option data-i18n="loc4">เซ็นทรัลเวิลด์</option>
+        <option data-i18n="loc5">ส่งถึงที่พัก</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label data-i18n="label_pickup_date">📅 วันที่รับรถ</label>
+      <input type="date" id="pickup-date">
+    </div>
+    <div class="form-group">
+      <label data-i18n="label_time">⏰ เวลารับรถ</label>
+      <select>
+        <option>08:00</option><option>09:00</option><option>10:00</option>
+        <option>11:00</option><option>12:00</option><option>13:00</option>
+        <option>14:00</option><option>15:00</option><option>16:00</option>
+        <option>17:00</option><option>18:00</option><option>19:00</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label data-i18n="label_return">📅 วันที่คืนรถ</label>
+      <input type="date" id="return-date">
+    </div>
+    <div class="form-group">
+      <label data-i18n="label_type">🚗 ประเภทรถ</label>
+      <select id="sel-type" onchange="searchCars()">
+        <option value="all" data-i18n="type_all">All Types</option>
+        <option value="type_eco" data-i18n="type_eco">Eco Car</option>
+        <option value="type_sedan" data-i18n="type_sedan">Sedan</option>
+        <option value="SUV">SUV</option>
+        <option value="Sports">Sports</option>
+        <option value="type_lux" data-i18n="type_lux">Luxury</option>
+      </select>
+    </div>
+    <div class="form-group" style="justify-content:flex-end">
+      <button class="btn-search" onclick="searchCars()" data-i18n="btn_search">🔍 ค้นหารถ</button>
+    </div>
+  </div>
+</section>
+
+<section class="fleet-section" id="fleet">
+  <h2 class="section-title"><span data-i18n="fleet_pre">เลือก</span><span data-i18n="fleet_span">รถของคุณ</span></h2>
+  <div class="fleet-grid" id="fleet-grid"></div>
+</section>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div id="modal-booking">
+      <div class="modal-header">
+        <div>
+          <h2 id="modal-car-name">—</h2>
+          <p style="color:var(--text3);font-size:.9rem;margin-top:.2rem" id="modal-car-model"></p>
+        </div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-summary" id="modal-summary"></div>
+      <div class="modal-form">
+        <div class="modal-row">
+          <div class="form-group"><label data-i18n="form_name">ชื่อ-นามสกุล</label><input type="text" id="b-name" placeholder="สมชาย ใจดี"></div>
+          <div class="form-group"><label data-i18n="form_phone">เบอร์โทรศัพท์</label><input type="tel" placeholder="08X-XXX-XXXX" id="b-phone"></div>
+        </div>
+        <div class="form-group"><label data-i18n="form_email">อีเมล</label><input type="email" placeholder="your@email.com" id="b-email"></div>
+        <div class="form-group"><label data-i18n="form_id">เลขบัตรประชาชน</label><input type="text" placeholder="X XXXX XXXXX XX X" id="b-id"></div>
+        <div class="modal-row">
+          <div class="form-group">
+            <label data-i18n="form_pay">วิธีชำระเงิน</label>
+            <select id="b-payment">
+              <option data-i18n="pay1">บัตรเครดิต/เดบิต</option>
+              <option data-i18n="pay2">โอนเงิน</option>
+              <option>QR Code</option>
+              <option data-i18n="pay3">ชำระที่รับรถ</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label data-i18n="form_ins">ประกันภัย</label>
+            <select id="b-insurance">
+              <option data-i18n="ins1">ประกันชั้น 1 (+฿300/วัน)</option>
+              <option data-i18n="ins2">ประกันชั้น 2+ (+฿150/วัน)</option>
+              <option data-i18n="ins3">ไม่เพิ่มประกัน</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-primary" style="width:100%;padding:1rem;font-size:1rem" onclick="confirmBooking()" data-i18n="btn_confirm">ยืนยันการจอง →</button>
+      </div>
+    </div>
+    <div class="success-msg" id="success-msg">
+      <div class="success-icon">✅</div>
+      <h3 data-i18n="ok_title">จองสำเร็จแล้ว!</h3>
+      <p data-i18n="ok_msg">ขอบคุณที่เลือกใช้บริการ Mic : Electric Car<br>เราจะส่งรายละเอียดไปยังอีเมลของคุณ</p>
+      <div class="booking-id" id="booking-ref"></div><br><br>
+      <button class="btn-primary" onclick="closeModal()" data-i18n="btn_back">กลับหน้าหลัก</button>
+    </div>
+  </div>
+</div>
+
+<footer>© 2026 <span>Mic : Electric Car</span> · <span data-i18n="footer">บริการเช่ารถพรีเมียม กรุงเทพฯ</span> · โทร 02-XXX-XXXX</footer>
+
+<script>
+const T = {
+  th:{ nav_fleet:'รถทั้งหมด',nav_booking:'จองรถ',nav_contact:'ติดต่อเรา',nav_book:'จองเลย',
+    hero_eyebrow:'บริการเช่ารถพรีเมียม · กรุงเทพฯ',
+    hero_title:'ขับทุกเส้นทาง<br>ด้วย<em>สไตล์</em>ของคุณ',
+    hero_sub:'เลือกจากรถหลากหลายรุ่น จองง่าย รับรถทันที ราคาโปร่งใส ไม่มีค่าธรรมเนียมซ่อนเร้น',
+    cta_book:'เริ่มจองรถ',cta_fleet:'ดูรถทั้งหมด',
+    stat1:'รถพร้อมให้เช่า',stat2:'บริการตลอดเวลา',stat3:'ลูกค้าพึงพอใจ',stat4:'คะแนนรีวิว',
+    search_pre:'ค้นหา',search_span:'รถว่าง',
+    label_pickup:'📍 สถานที่รับรถ',label_pickup_date:'📅 วันที่รับรถ',label_time:'⏰ เวลารับรถ',label_return:'📅 วันที่คืนรถ',label_type:'🚗 ประเภทรถ',
+    loc1:'สนามบินสุวรรณภูมิ',loc2:'สนามบินดอนเมือง',loc3:'สยามพารากอน',loc4:'เซ็นทรัลเวิลด์',loc5:'ส่งถึงที่พัก',
+    type_all:'ทุกประเภท',type_eco:'อีโค่คาร์',type_sedan:'ซีดาน',type_lux:'ลักซ์ชัวรี่',type_sports:'สปอร์ต',
+    btn_search:'🔍 ค้นหารถ',fleet_pre:'เลือก',fleet_span:'รถของคุณ',
+    car_book:'จองเลย',per_day:'ต่อวัน',
+    form_name:'ชื่อ-นามสกุล',form_phone:'เบอร์โทรศัพท์',form_email:'อีเมล',form_id:'เลขบัตรประชาชน',form_pay:'วิธีชำระเงิน',form_ins:'ประกันภัย',
+    pay1:'บัตรเครดิต/เดบิต',pay2:'โอนเงิน',pay3:'ชำระที่รับรถ',
+    ins1:'ประกันชั้น 1 (+฿300/วัน)',ins2:'ประกันชั้น 2+ (+฿150/วัน)',ins3:'ไม่เพิ่มประกัน',
+    btn_confirm:'ยืนยันการจอง →',btn_back:'กลับหน้าหลัก',
+    ok_title:'จองสำเร็จแล้ว!',ok_msg:'ขอบคุณที่เลือกใช้บริการ Mic : Electric Car<br>เราจะส่งรายละเอียดไปยังอีเมลของคุณ',
+    footer:'บริการเช่ารถพรีเมียม กรุงเทพฯ',
+    s_car:'รถ',s_price:'ราคา/วัน',s_days:'จำนวนวัน',s_total:'รวมทั้งหมด',
+    day_unit:'วัน',alert:'กรุณากรอกข้อมูลให้ครบถ้วน',flag:'🌐 TH' },
+  en:{ nav_fleet:'Fleet',nav_booking:'Book',nav_contact:'Contact',nav_book:'Book Now',
+    hero_eyebrow:'Premium Car Rental · Bangkok',
+    hero_title:'Drive Every Road<br>with <em>Your Style</em>',
+    hero_sub:'Choose from a wide range of vehicles. Easy booking, instant pickup, transparent pricing.',
+    cta_book:'Book a Car',cta_fleet:'View Fleet',
+    stat1:'Cars Available',stat2:'24/7 Service',stat3:'Happy Customers',stat4:'Review Score',
+    search_pre:'Find an ',search_span:'Available Car',
+    label_pickup:'📍 Pickup Location',label_pickup_date:'📅 Pickup Date',label_time:'⏰ Pickup Time',label_return:'📅 Return Date',label_type:'🚗 Car Type',
+    loc1:'Suvarnabhumi Airport',loc2:'Don Mueang Airport',loc3:'Siam Paragon',loc4:'CentralWorld',loc5:'Hotel Delivery',
+    type_all:'All Types',type_eco:'Eco Car',type_sedan:'Sedan',type_lux:'Luxury',type_sports:'Sports',
+    btn_search:'🔍 Search Cars',fleet_pre:'Choose ',fleet_span:'Your Car',
+    car_book:'Book Now',per_day:'per day',
+    form_name:'Full Name',form_phone:'Phone',form_email:'Email',form_id:'Passport / ID No.',form_pay:'Payment',form_ins:'Insurance',
+    pay1:'Credit / Debit Card',pay2:'Bank Transfer',pay3:'Pay at Pickup',
+    ins1:'Full Coverage (+฿300/day)',ins2:'Basic (+฿150/day)',ins3:'No Extra Insurance',
+    btn_confirm:'Confirm Booking →',btn_back:'Back to Home',
+    ok_title:'Booking Confirmed!',ok_msg:'Thank you for choosing Mic : Electric Car.<br>Details will be sent to your email.',
+    footer:'Premium Car Rental Bangkok',
+    s_car:'Car',s_price:'Price/Day',s_days:'Days',s_total:'Total',
+    day_unit:'day(s)',alert:'Please fill in all required fields.',flag:'🌐 EN' },
+  zh:{ nav_fleet:'车队',nav_booking:'预订',nav_contact:'联系我们',nav_book:'立即预订',
+    hero_eyebrow:'豪华租车服务 · 曼谷',
+    hero_title:'驾驭每条路<br>展现<em>您的风格</em>',
+    hero_sub:'多种车型，便捷预订，即时取车，价格透明，无隐藏费用。',
+    cta_book:'立即预订',cta_fleet:'查看车队',
+    stat1:'可用车辆',stat2:'全天候服务',stat3:'满意客户',stat4:'评分',
+    search_pre:'查找',search_span:'可用车辆',
+    label_pickup:'📍 取车地点',label_pickup_date:'📅 取车日期',label_time:'⏰ 取车时间',label_return:'📅 还车日期',label_type:'🚗 车型',
+    loc1:'素万那普机场',loc2:'廊曼机场',loc3:'暹罗百丽宫',loc4:'中央世界',loc5:'酒店配送',
+    type_all:'全部类型',type_eco:'经济型',type_sedan:'轿车',type_lux:'豪华型',type_sports:'跑车',
+    btn_search:'🔍 搜索',fleet_pre:'选择',fleet_span:'您的车辆',
+    car_book:'立即预订',per_day:'每天',
+    form_name:'姓名',form_phone:'电话',form_email:'电子邮件',form_id:'证件号码',form_pay:'支付方式',form_ins:'保险',
+    pay1:'信用卡/借记卡',pay2:'银行转账',pay3:'取车时支付',
+    ins1:'全险 (+฿300/天)',ins2:'基础险 (+฿150/天)',ins3:'不需额外保险',
+    btn_confirm:'确认预订 →',btn_back:'返回首页',
+    ok_title:'预订成功！',ok_msg:'感谢您选择 Mic : Electric Car。<br>详情将发送至您的电子邮件。',
+    footer:'豪华租车服务 曼谷',
+    s_car:'车辆',s_price:'价格/天',s_days:'天数',s_total:'合计',
+    day_unit:'天',alert:'请填写所有必填信息。',flag:'🌐 中文' },
+  ja:{ nav_fleet:'車両一覧',nav_booking:'予約',nav_contact:'お問い合わせ',nav_book:'今すぐ予約',
+    hero_eyebrow:'プレミアムレンタカー · バンコク',
+    hero_title:'すべての道を<br><em>あなたのスタイル</em>で',
+    hero_sub:'多彩な車種、簡単予約、即時受け取り、透明な料金体系。',
+    cta_book:'車を予約する',cta_fleet:'車両を見る',
+    stat1:'利用可能な車両',stat2:'24時間対応',stat3:'満足いただいたお客様',stat4:'評価',
+    search_pre:'',search_span:'空き車両を検索',
+    label_pickup:'📍 受け取り場所',label_pickup_date:'📅 受け取り日',label_time:'⏰ 受け取り時間',label_return:'📅 返却日',label_type:'🚗 車種',
+    loc1:'スワンナプーム空港',loc2:'ドンムアン空港',loc3:'サイアムパラゴン',loc4:'セントラルワールド',loc5:'ホテル配送',
+    type_all:'すべて',type_eco:'エコカー',type_sedan:'セダン',type_lux:'ラグジュアリー',type_sports:'スポーツ',
+    btn_search:'🔍 検索',fleet_pre:'お好みの',fleet_span:'車両を選ぶ',
+    car_book:'予約する',per_day:'1日あたり',
+    form_name:'氏名',form_phone:'電話番号',form_email:'メール',form_id:'パスポート番号',form_pay:'支払い方法',form_ins:'保険',
+    pay1:'クレジット/デビットカード',pay2:'銀行振込',pay3:'受け取り時支払い',
+    ins1:'完全保険 (+฿300/日)',ins2:'基本保険 (+฿150/日)',ins3:'追加保険なし',
+    btn_confirm:'予約を確認する →',btn_back:'ホームに戻る',
+    ok_title:'予約完了！',ok_msg:'Mic : Electric Car をご利用いただきありがとうございます。<br>詳細をメールにお送りします。',
+    footer:'プレミアムレンタカー バンコク',
+    s_car:'車両',s_price:'料金/日',s_days:'日数',s_total:'合計',
+    day_unit:'日',alert:'すべての必須項目を入力してください。',flag:'🌐 日本語' },
+  ko:{ nav_fleet:'차량',nav_booking:'예약',nav_contact:'문의하기',nav_book:'지금 예약',
+    hero_eyebrow:'프리미엄 렌터카 · 방콕',
+    hero_title:'모든 길을<br><em>당신의 스타일</em>로',
+    hero_sub:'다양한 차종, 간편 예약, 즉시 픽업, 투명한 요금 — 숨겨진 비용 없음.',
+    cta_book:'차량 예약',cta_fleet:'차량 보기',
+    stat1:'이용 가능 차량',stat2:'24시간 서비스',stat3:'만족 고객',stat4:'리뷰 점수',
+    search_pre:'',search_span:'이용 가능 차량 검색',
+    label_pickup:'📍 픽업 장소',label_pickup_date:'📅 픽업 날짜',label_time:'⏰ 픽업 시간',label_return:'📅 반납 날짜',label_type:'🚗 차종',
+    loc1:'수완나품 공항',loc2:'돈므앙 공항',loc3:'시암 파라곤',loc4:'센트럴 월드',loc5:'호텔 배달',
+    type_all:'전체',type_eco:'경제형',type_sedan:'세단',type_lux:'럭셔리',type_sports:'스포츠',
+    btn_search:'🔍 검색',fleet_pre:'',fleet_span:'차량 선택',
+    car_book:'예약하기',per_day:'하루',
+    form_name:'성명',form_phone:'전화번호',form_email:'이메일',form_id:'여권 번호',form_pay:'결제 방법',form_ins:'보험',
+    pay1:'신용/체크카드',pay2:'계좌이체',pay3:'픽업 시 결제',
+    ins1:'완전보험 (+฿300/일)',ins2:'기본보험 (+฿150/일)',ins3:'추가 보험 없음',
+    btn_confirm:'예약 확인 →',btn_back:'홈으로 돌아가기',
+    ok_title:'예약 완료!',ok_msg:'Mic : Electric Car를 이용해 주셔서 감사합니다.<br>이메일로 상세 내용을 보내드리겠습니다.',
+    footer:'프리미엄 렌터카 방콕',
+    s_car:'차량',s_price:'요금/일',s_days:'일수',s_total:'합계',
+    day_unit:'일',alert:'모든 필수 항목을 입력해 주세요.',flag:'🌐 한국어' }
+};
+
+let lang = 'en', dark = true;
+
+function applyLang(l) {
+  const t = T[l];
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.getAttribute('data-i18n');
+    if (t[k] !== undefined) el.innerHTML = t[k];
+  });
+  document.getElementById('lang-btn').innerHTML = t.flag + ' ▾';
+  document.querySelectorAll('.lang-option').forEach((el,i) => {
+    el.classList.toggle('active', ['th','en','zh','ja','ko'][i] === l);
+  });
+  renderFleet();
+}
+
+function setLang(l) {
+  lang = l;
+  applyLang(l);
+  document.getElementById('lang-dropdown').classList.remove('open');
+}
+
+function toggleLangMenu() {
+  document.getElementById('lang-dropdown').classList.toggle('open');
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.lang-wrapper')) document.getElementById('lang-dropdown').classList.remove('open');
+});
+
+function toggleTheme() {
+  dark = !dark;
+  document.body.classList.toggle('light', !dark);
+  document.getElementById('theme-btn').textContent = dark ? '🌙' : '☀️';
+}
+
+// ============ FIREBASE CONFIG ============
+// TODO: เปลี่ยน YOUR_PROJECT_ID เป็น Project ID ของคุณจาก Firebase Console
+const FIREBASE_URL = 'https://calabura-ea686-default-rtdb.asia-southeast1.firebasedatabase.app';
+
+const BASE_IMG = 'https://mistyboyz.github.io/Car-booking/';
+const cars = [
+  {id:1,catKey:'type_eco',name:'Toyota Yaris',model:'2024 · Auto · Petrol',price:800,features:['5 Seats','A/C','Bluetooth','Rear Cam'],
+   img:BASE_IMG+'toyota-yaris.png'},
+  {id:2,catKey:'type_sedan',name:'Honda City',model:'2024 · Auto · Petrol',price:1100,features:['5 Seats','A/C','CarPlay','Park Sensor'],
+   img:BASE_IMG+'Honda-City.png'},
+  {id:3,catKey:'type_lux',name:'BMW 3 Series',model:'2024 · Auto · Petrol',price:3500,features:['5 Seats','Leather','HUD','Sport Mode'],
+   img:BASE_IMG+'BMW-3-Series.png'},
+  {id:4,cat:'SUV',name:'Honda CR-V',model:'2024 · Auto · Hybrid',price:1800,features:['7 Seats','4WD','Sunroof','CarPlay'],
+   img:BASE_IMG+'honda-cr-v.png'},
+  {id:5,cat:'Sports',name:'Ford Mustang GT',model:'2024 · Manual · V8 5.0L',price:5500,features:['4 Seats','V8 Engine','Sport Mode','Premium Sound'],
+   img:BASE_IMG+'Ford-mustang.png'},
+  {id:6,catKey:'type_lux',name:'Nissan GT-R',model:'2024 · Auto · Twin-Turbo V6',price:8000,features:['4 Seats','AWD','Launch Control','Brembo Brakes'],
+   img:BASE_IMG+'nissan-GTR.png'},
+];
+
+let selectedCar = null;
+
+function renderFleet(filterKey) {
+  const t = T[lang];
+  const sel = filterKey || document.getElementById('sel-type')?.value || 'all';
+  let filtered = cars;
+  if (sel !== 'all') {
+    filtered = cars.filter(c => {
+      const carKey = c.catKey || '';
+      const carCat = c.cat || '';
+      return carKey === sel || carCat === sel;
+    });
+  }
+  if (filtered.length === 0) {
+    document.getElementById('fleet-grid').innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text3);font-size:1.1rem">🚗 No cars found in this category</div>`;
+    return;
+  }
+  document.getElementById('fleet-grid').innerHTML = filtered.map(c => {
+    const cat = c.catKey ? (t[c.catKey]||c.cat) : c.cat;
+    return `<div class="car-card">
+      <div class="car-img-wrap"><img src="${c.img}" alt="${c.name}" class="car-img" onerror="this.parentElement.innerHTML='<span class=car-emoji>🚗</span>'"></div>
+      <div class="car-category">${cat}</div>
+      <div class="car-name">${c.name}</div>
+      <div class="car-model">${c.model}</div>
+      <div class="car-features">${c.features.map(f=>`<span class="tag">${f}</span>`).join('')}</div>
+      <div class="car-price">
+        <div><span class="price-amount">฿${c.price.toLocaleString()}</span><div class="price-unit">${t.per_day}</div></div>
+        <button class="btn-book" onclick="openModal(${c.id})">${t.car_book}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openModal(id) {
+  const t = T[lang];
+  selectedCar = cars.find(c=>c.id===id);
+  document.getElementById('modal-car-name').textContent = selectedCar.name;
+  document.getElementById('modal-car-model').textContent = selectedCar.model;
+  const p = document.getElementById('pickup-date').value;
+  const r = document.getElementById('return-date').value;
+  let days = 1;
+  if (p && r) { const d=(new Date(r)-new Date(p))/86400000; if(d>0) days=d; }
+  document.getElementById('modal-summary').innerHTML = `
+    <div class="summary-row"><span class="summary-label">${t.s_car}</span><span>${selectedCar.emoji} ${selectedCar.name}</span></div>
+    <div class="summary-row"><span class="summary-label">${t.s_price}</span><span>฿${selectedCar.price.toLocaleString()}</span></div>
+    <div class="summary-row"><span class="summary-label">${t.s_days}</span><span>${days} ${t.day_unit}</span></div>
+    <div class="summary-row"><span class="summary-label">${t.s_total}</span><span>฿${(selectedCar.price*days).toLocaleString()}</span></div>`;
+  document.getElementById('modal-booking').style.display='block';
+  document.getElementById('success-msg').classList.remove('show');
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+async function confirmBooking() {
+  const t = T[lang];
+  const name = document.getElementById('b-name').value;
+  const phone = document.getElementById('b-phone').value;
+  const email = document.getElementById('b-email').value;
+  if (!name || !phone || !email) { alert(t.alert); return; }
+
+  const ref = 'DN' + Date.now().toString().slice(-6);
+  const p = document.getElementById('pickup-date').value;
+  const r = document.getElementById('return-date').value;
+  let days = 1;
+  if (p && r) { const d=(new Date(r)-new Date(p))/86400000; if(d>0) days=d; }
+
+  const booking = {
+    ref, name, phone, email,
+    idCard: document.getElementById('b-id').value || '-',
+    payment: document.getElementById('b-payment').value,
+    insurance: document.getElementById('b-insurance').value,
+    carId: selectedCar.id,
+    carName: selectedCar.name,
+    carModel: selectedCar.model,
+    carImg: selectedCar.img,
+    pickupDate: p, returnDate: r, days,
+    pricePerDay: selectedCar.price,
+    total: selectedCar.price * days,
+    status: 'pending',
+    createdAt: new Date().toISOString()
+  };
+
+  // Save to Firebase
+  try {
+    const res = await fetch(`${FIREBASE_URL}/bookings/${ref}.json`, {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(booking)
+    });
+    if (!res.ok) throw new Error('Firebase error');
+  } catch(e) {
+    console.warn('Firebase save failed, continuing offline:', e);
+  }
+
+  document.getElementById('booking-ref').textContent = '# ' + ref;
+  document.getElementById('modal-booking').style.display='none';
+  document.getElementById('success-msg').classList.add('show');
+}
+
+function searchCars() {
+  document.getElementById('fleet').scrollIntoView({behavior:'smooth'});
+  renderFleet();
+}
+
+const t1=new Date(); t1.setDate(t1.getDate()+1);
+const t2=new Date(); t2.setDate(t2.getDate()+3);
+document.getElementById('pickup-date').value=t1.toISOString().split('T')[0];
+document.getElementById('return-date').value=t2.toISOString().split('T')[0];
+applyLang('en');
+document.getElementById('modal').addEventListener('click',function(e){ if(e.target===this) closeModal(); });
+</script>
+</body>
+</html>
