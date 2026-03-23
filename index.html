@@ -46,8 +46,12 @@
   .nav-btn { background:var(--gold); color:#0a0a0a; border:none; padding:.48rem 1.1rem; font-family:'DM Sans',sans-serif; font-weight:700; font-size:.8rem; cursor:pointer; text-transform:uppercase; letter-spacing:.05em; transition:background .2s; white-space:nowrap; }
   .nav-btn:hover { background:var(--gold-light); }
 
-  .hero { min-height:100vh; display:flex; flex-direction:column; justify-content:center; padding:8rem 3rem 4rem; position:relative; overflow:hidden; }
-  .hero::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 70% 50%,rgba(201,168,76,.08) 0%,transparent 60%); }
+  .hero { min-height:100vh; display:flex; flex-direction:column; justify-content:center; padding:8rem 3rem 4rem; position:relative; overflow:hidden;
+    background-image: url('https://mistyboyz.github.io/Calabura/audi1.jpg');
+    background-size: cover; background-position: center right; background-repeat: no-repeat; }
+  .hero-overlay { position:absolute; inset:0; background:linear-gradient(to right, rgba(10,10,10,0.92) 40%, rgba(10,10,10,0.3) 100%); z-index:0; }
+  body.light .hero-overlay { background:linear-gradient(to right, rgba(247,245,240,0.92) 40%, rgba(247,245,240,0.2) 100%); }
+  .hero > *:not(.hero-graphic):not(.hero-overlay) { position:relative; z-index:1; }
   .hero-eyebrow { font-size:.75rem; letter-spacing:.3em; text-transform:uppercase; color:var(--gold); margin-bottom:1.5rem; font-weight:600; }
   .hero h1 { font-family:'Playfair Display',serif; font-size:clamp(2.8rem,6vw,6rem); font-weight:900; line-height:1.05; max-width:700px; animation:fadeUp .8s ease both; color:var(--text); }
   .hero h1 em { color:var(--gold); font-style:italic; }
@@ -188,6 +192,7 @@
 </nav>
 
 <section class="hero">
+  <div class="hero-overlay"></div>
   <div class="hero-graphic">🚗</div>
   <p class="hero-eyebrow" data-i18n="hero_eyebrow">บริการเช่ารถพรีเมียม · กรุงเทพฯ</p>
   <h1 data-i18n="hero_title">ขับทุกเส้นทาง<br>ด้วย<em>สไตล์</em>ของคุณ</h1>
