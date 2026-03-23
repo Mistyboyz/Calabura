@@ -6,6 +6,16 @@
 <title>Mic : Electric Car — Car Booking</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
+  @font-face {
+    font-family: 'AudiType';
+    src: url('https://mistyboyz.github.io/Calabura/AudiType-Normal_03.ttf') format('truetype');
+    font-weight: 400; font-style: normal;
+  }
+  @font-face {
+    font-family: 'AudiType';
+    src: url('https://mistyboyz.github.io/Calabura/AudiType-Bold_03.ttf') format('truetype');
+    font-weight: 700 900; font-style: normal;
+  }
   :root {
     --bg: #0a0a0a; --bg2: #141414; --text: #f5f3ef;
     --text2: rgba(245,243,239,0.6); --text3: #6b6760;
@@ -66,7 +76,7 @@
   .stats-bar { display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid var(--border); border-bottom:1px solid var(--border); background:var(--bg2); transition:background .3s; }
   .stat { padding:2.5rem 2rem; text-align:center; border-right:1px solid var(--border); }
   .stat:last-child { border-right:none; }
-  .stat-num { font-family:'Playfair Display',serif; font-size:2.5rem; font-weight:900; color:var(--gold); }
+  .stat-num { font-family:'AudiType',serif; font-size:2.5rem; font-weight:900; color:var(--gold); }
   .stat-label { color:var(--text3); font-size:.85rem; margin-top:.3rem; }
 
   .booking-section { padding:5rem 3rem; background:var(--bg2); border-top:1px solid var(--border); border-bottom:1px solid var(--border); transition:background .3s; }
@@ -98,8 +108,8 @@
   .car-features { display:flex; gap:.8rem; flex-wrap:wrap; margin-bottom:1.5rem; }
   .tag { font-size:.75rem; padding:.3rem .7rem; background:rgba(201,168,76,.1); border:1px solid var(--border); color:var(--text2); }
   .car-price { display:flex; justify-content:space-between; align-items:flex-end; border-top:1px solid var(--border); padding-top:1.2rem; }
-  .price-amount { font-family:'Playfair Display',serif; font-size:2rem; font-weight:900; color:var(--gold); }
-  .price-unit { font-size:.8rem; color:var(--text3); font-family:'Playfair Display',serif; }
+  .price-amount { font-family:'AudiType',serif; font-size:2rem; font-weight:900; color:var(--gold); }
+  .price-unit { font-size:.8rem; color:var(--text3); font-family:'AudiType',serif; }
   .btn-book { background:transparent; color:var(--gold); border:1px solid var(--gold); padding:.5rem 1.2rem; font-family:'DM Sans',sans-serif; font-weight:600; font-size:.85rem; cursor:pointer; transition:all .2s; }
   .btn-book:hover { background:var(--gold); color:#0a0a0a; }
 
@@ -113,15 +123,15 @@
   .modal-form { display:flex; flex-direction:column; gap:1.2rem; }
   .modal-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
   .modal-summary { background:rgba(201,168,76,.07); border:1px solid var(--border); padding:1.2rem; margin-bottom:.5rem; }
-  .summary-row { display:flex; justify-content:space-between; font-size:.9rem; padding:.3rem 0; border-bottom:1px solid rgba(201,168,76,.1); color:var(--text); font-family:'Playfair Display',serif; }
+  .summary-row { display:flex; justify-content:space-between; font-size:.9rem; padding:.3rem 0; border-bottom:1px solid rgba(201,168,76,.1); color:var(--text); font-family:'AudiType',serif; }
   .summary-row:last-child { border-bottom:none; font-weight:700; color:var(--gold); }
-  .summary-label { color:var(--text3); font-family:'Playfair Display',serif; }
+  .summary-label { color:var(--text3); font-family:'AudiType',serif; }
   .success-msg { display:none; text-align:center; padding:2rem; }
   .success-msg.show { display:block; }
   .success-icon { font-size:3.5rem; margin-bottom:1rem; }
   .success-msg h3 { font-family:'Playfair Display',serif; font-size:1.8rem; margin-bottom:.8rem; color:var(--text); }
   .success-msg p { color:var(--text3); line-height:1.6; }
-  .booking-id { display:inline-block; margin-top:1.2rem; background:rgba(201,168,76,.1); border:1px solid var(--border); padding:.5rem 1.2rem; font-size:1.1rem; letter-spacing:.1em; color:var(--gold); font-family:'Playfair Display',serif; }
+  .booking-id { display:inline-block; margin-top:1.2rem; background:rgba(201,168,76,.1); border:1px solid var(--border); padding:.5rem 1.2rem; font-size:1.1rem; letter-spacing:.1em; color:var(--gold); font-family:'AudiType',serif; }
   footer { text-align:center; padding:2.5rem; color:var(--text3); font-size:.85rem; border-top:1px solid var(--border); background:var(--bg2); transition:background .3s; }
   footer span { color:var(--gold); }
 

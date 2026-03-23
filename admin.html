@@ -6,6 +6,16 @@
 <title>Mic : Electric Car — Admin Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
+  @font-face {
+    font-family: 'AudiType';
+    src: url('https://mistyboyz.github.io/Calabura/AudiType-Normal_03.ttf') format('truetype');
+    font-weight: 400; font-style: normal;
+  }
+  @font-face {
+    font-family: 'AudiType';
+    src: url('https://mistyboyz.github.io/Calabura/AudiType-Bold_03.ttf') format('truetype');
+    font-weight: 700 900; font-style: normal;
+  }
   :root {
     --bg:#0d0d0d; --bg2:#161616; --bg3:#1e1e1e;
     --text:#f0ede8; --text2:rgba(240,237,232,0.55); --text3:#6b6760;
@@ -51,7 +61,7 @@
   .stat-card.blue::after { background:var(--blue); }
   .stat-card.orange::after { background:var(--orange); }
   .stat-label { font-size:.72rem; letter-spacing:.15em; text-transform:uppercase; color:var(--text3); margin-bottom:.5rem; }
-  .stat-value { font-family:'Playfair Display',serif; font-size:2.2rem; font-weight:900; }
+  .stat-value { font-family:'AudiType',serif; font-size:2.2rem; font-weight:900; }
   .stat-card.gold .stat-value { color:var(--gold); }
   .stat-card.green .stat-value { color:var(--green); }
   .stat-card.blue .stat-value { color:var(--blue); }
@@ -85,11 +95,10 @@
   .car-cell-model { font-size:.74rem; color:var(--text3); }
   .customer-name { font-weight:600; }
   .customer-contact { font-size:.76rem; color:var(--text3); margin-top:.1rem; }
-  .date-cell { font-size:.82rem; line-height:1.5; }
+  .date-cell { font-family:'AudiType',sans-serif; font-size:.85rem; line-height:1.5; }
   .date-arrow { color:var(--text3); margin:0 .2rem; }
-  .price-cell { font-family:'Playfair Display',serif; font-weight:700; color:var(--gold); font-size:1rem; }
-  .days-badge { background:rgba(201,168,76,.1); border:1px solid var(--border); color:var(--gold); padding:.15rem .5rem; font-size:.78rem; font-weight:700; font-family:'Playfair Display',serif; }
-  .date-cell { font-family:'Playfair Display',serif; font-size:.85rem; }
+  .price-cell { font-family:'AudiType',sans-serif; font-weight:700; color:var(--gold); font-size:1rem; }
+  .days-badge { background:rgba(201,168,76,.1); border:1px solid var(--border); color:var(--gold); padding:.15rem .5rem; font-size:.78rem; font-weight:700; font-family:'AudiType',sans-serif; }
 
   /* STATUS BADGE */
   .status { display:inline-flex; align-items:center; gap:.35rem; padding:.28rem .7rem; font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; border:1px solid; transition:all .2s; }
@@ -110,7 +119,7 @@
   .detail-overlay.open { display:flex; }
   .detail-modal { background:var(--bg2); border:1px solid var(--border); max-width:600px; width:100%; max-height:90vh; overflow-y:auto; padding:2rem; animation:slideUp .25s ease; }
   .detail-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.8rem; padding-bottom:1.2rem; border-bottom:1px solid var(--border); }
-  .detail-ref { font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:900; color:var(--gold); }
+  .detail-ref { font-family:'AudiType',serif; font-size:1.5rem; font-weight:900; color:var(--gold); }
   .detail-date { font-size:.78rem; color:var(--text3); margin-top:.2rem; }
   .close-btn { background:none; border:1px solid var(--border); color:var(--text2); width:32px; height:32px; cursor:pointer; font-size:1rem; transition:all .2s; }
   .close-btn:hover { border-color:var(--gold); color:var(--gold); }
@@ -123,7 +132,7 @@
   .detail-car-info p { font-size:.82rem; color:var(--text3); margin-top:.2rem; }
   .detail-total { display:flex; justify-content:space-between; align-items:center; padding:1rem; border:1px solid var(--border); margin-bottom:1.5rem; background:rgba(201,168,76,.04); }
   .detail-total-label { font-size:.8rem; color:var(--text3); }
-  .detail-total-amount { font-family:'Playfair Display',serif; font-size:1.6rem; font-weight:900; color:var(--gold); }
+  .detail-total-amount { font-family:'AudiType',serif; font-size:1.6rem; font-weight:900; color:var(--gold); }
   .status-actions { display:flex; gap:.6rem; flex-wrap:wrap; }
   .status-btn { padding:.5rem 1rem; border:1px solid; font-family:'DM Sans',sans-serif; font-size:.8rem; font-weight:600; cursor:pointer; text-transform:uppercase; letter-spacing:.08em; transition:all .2s; background:transparent; }
   .status-btn.confirm { color:var(--green); border-color:var(--green); }
@@ -167,7 +176,7 @@
 <div class="login-screen" id="login-screen">
   <div class="login-box">
     <h2>Admin <span style="color:var(--gold)">Login</span></h2>
-    <p>Mic : Electric Car — ระบบจัดการการจอง</p>
+    <p>Mic : Electric Car — Booking Management System</p>
     <div class="login-field">
       <label>Username</label>
       <input type="text" id="login-user" placeholder="admin" value="admin">
@@ -176,8 +185,8 @@
       <label>Password</label>
       <input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
-    <button class="login-btn" onclick="doLogin()">เข้าสู่ระบบ</button>
-    <p class="login-error" id="login-error">❌ รหัสผ่านไม่ถูกต้อง</p>
+    <button class="login-btn" onclick="doLogin()">Sign In</button>
+    <p class="login-error" id="login-error">❌ Invalid username or password</p>
     <p style="font-size:.75rem;color:var(--text3);margin-top:1rem">Default: admin / drivenow2026</p>
   </div>
 </div>
@@ -189,13 +198,13 @@
     <p>Admin Panel</p>
   </div>
   <nav class="sidebar-nav">
-    <div class="nav-item active" onclick="showTab('bookings')"><span class="nav-icon">📋</span>การจองทั้งหมด</div>
-    <div class="nav-item" onclick="showTab('cars')"><span class="nav-icon">🚗</span>รถทั้งหมด</div>
-    <div class="nav-item" onclick="window.open('index.html','_blank')"><span class="nav-icon">🌐</span>หน้าเว็บลูกค้า</div>
-    <div class="nav-item" onclick="doLogout()" style="margin-top:auto"><span class="nav-icon">🚪</span>ออกจากระบบ</div>
+    <div class="nav-item active" onclick="showTab('bookings')"><span class="nav-icon">📋</span>All Bookings</div>
+    <div class="nav-item" onclick="showTab('cars')"><span class="nav-icon">🚗</span>All Cars</div>
+    <div class="nav-item" onclick="window.open('index.html','_blank')"><span class="nav-icon">🌐</span>Customer Website</div>
+    <div class="nav-item" onclick="doLogout()" style="margin-top:auto"><span class="nav-icon">🚪</span>Logout</div>
   </nav>
   <div class="sidebar-footer">
-    <span class="online-dot"></span>ออนไลน์ · อัปเดต realtime
+    <span class="online-dot"></span>Online · Realtime updates
   </div>
 </div>
 
@@ -204,53 +213,53 @@
 
   <!-- Firebase Config Banner -->
   <div class="config-banner" id="config-banner">
-    ⚠️ <div><strong>ยังไม่ได้ตั้งค่า Firebase</strong> — แก้ไข <code>FIREBASE_URL</code> ในไฟล์นี้และ index.html ให้เป็น Project ID ของคุณ ดูวิธีตั้งค่าด้านล่าง<br>
-    <small style="opacity:.7">ตอนนี้แสดงข้อมูล Demo เพื่อให้เห็นหน้าตา</small></div>
+    ⚠️ <div><strong>Firebase not configured</strong> — Edit <code>FIREBASE_URL</code> in this file and index.html with your Project ID<br>
+    <small style="opacity:.7">Currently showing Demo data for preview</small></div>
   </div>
 
   <!-- BOOKINGS TAB -->
   <div id="tab-bookings">
     <div class="page-header">
       <div>
-        <h2>การจองทั้งหมด</h2>
-        <p style="font-size:.82rem;color:var(--text3);margin-top:.2rem">รายการจองรถทั้งหมดในระบบ</p>
+        <h2>All Bookings</h2>
+        <p style="font-size:.82rem;color:var(--text3);margin-top:.2rem">All booking records in the system</p>
       </div>
       <div class="header-actions">
         <span class="last-updated" id="last-updated">—</span>
-        <button class="btn-refresh" onclick="loadBookings()">🔄 รีเฟรช</button>
+        <button class="btn-refresh" onclick="loadBookings()">🔄 Refresh</button>
       </div>
     </div>
 
     <div class="stat-grid">
-      <div class="stat-card gold"><div class="stat-label">การจองทั้งหมด</div><div class="stat-value" id="s-total">0</div><div class="stat-sub">ทุกสถานะ</div></div>
-      <div class="stat-card green"><div class="stat-label">รอยืนยัน</div><div class="stat-value" id="s-pending">0</div><div class="stat-sub">ต้องดำเนินการ</div></div>
-      <div class="stat-card blue"><div class="stat-label">ยืนยันแล้ว</div><div class="stat-value" id="s-confirmed">0</div><div class="stat-sub">เตรียมรับรถ</div></div>
-      <div class="stat-card orange"><div class="stat-label">รายได้รวม</div><div class="stat-value" id="s-revenue">฿0</div><div class="stat-sub">จากการจองทั้งหมด</div></div>
+      <div class="stat-card gold"><div class="stat-label">All Bookings</div><div class="stat-value" id="s-total">0</div><div class="stat-sub">All statuses</div></div>
+      <div class="stat-card green"><div class="stat-label">Pending</div><div class="stat-value" id="s-pending">0</div><div class="stat-sub">Action required</div></div>
+      <div class="stat-card blue"><div class="stat-label">Confirmed</div><div class="stat-value" id="s-confirmed">0</div><div class="stat-sub">Ready for pickup</div></div>
+      <div class="stat-card orange"><div class="stat-label">Total Revenue</div><div class="stat-value" id="s-revenue">฿0</div><div class="stat-sub">From all bookings</div></div>
     </div>
 
     <div class="filters">
-      <button class="filter-btn active" onclick="filterStatus('all',this)">ทั้งหมด</button>
-      <button class="filter-btn" onclick="filterStatus('pending',this)">🟡 รอยืนยัน</button>
-      <button class="filter-btn" onclick="filterStatus('confirmed',this)">🟢 ยืนยันแล้ว</button>
-      <button class="filter-btn" onclick="filterStatus('completed',this)">🔵 เสร็จสิ้น</button>
-      <button class="filter-btn" onclick="filterStatus('cancelled',this)">🔴 ยกเลิก</button>
-      <input class="search-box" type="text" placeholder="🔍 ค้นหาชื่อ / Ref / รถ..." oninput="searchBookings(this.value)">
+      <button class="filter-btn active" onclick="filterStatus('all',this)">All</button>
+      <button class="filter-btn" onclick="filterStatus('pending',this)">🟡 Pending</button>
+      <button class="filter-btn" onclick="filterStatus('confirmed',this)">🟢 Confirmed</button>
+      <button class="filter-btn" onclick="filterStatus('completed',this)">🔵 Completed</button>
+      <button class="filter-btn" onclick="filterStatus('cancelled',this)">🔴 Cancelled</button>
+      <input class="search-box" type="text" placeholder="🔍 Search name / Ref / Car..." oninput="searchBookings(this.value)">
     </div>
 
     <div class="table-wrap">
       <div class="table-head">
-        <h3>รายการจอง</h3>
-        <span class="table-count" id="table-count">0 รายการ</span>
+        <h3>Booking List</h3>
+        <span class="table-count" id="table-count">0 records</span>
       </div>
       <div id="table-body-wrap">
-        <div class="loading-state"><div class="spinner"></div><p style="margin-top:1rem">กำลังโหลด...</p></div>
+        <div class="loading-state"><div class="spinner"></div><p style="margin-top:1rem">Loading...</p></div>
       </div>
     </div>
   </div>
 
   <!-- CARS TAB -->
   <div id="tab-cars" style="display:none">
-    <div class="page-header"><h2>รถทั้งหมด</h2></div>
+    <div class="page-header"><h2>All Cars</h2></div>
     <div class="stat-grid" id="cars-grid" style="grid-template-columns:repeat(3,1fr)"></div>
   </div>
 
@@ -270,7 +279,7 @@
     <div class="detail-grid" id="d-info"></div>
     <div class="detail-total" id="d-total"></div>
     <div>
-      <p style="font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.8rem">เปลี่ยนสถานะ</p>
+      <p style="font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.8rem">Change Status</p>
       <div class="status-actions" id="d-actions"></div>
     </div>
   </div>
@@ -284,14 +293,14 @@ const ADMIN_PASS = 'drivenow2026';
 
 // ============ DEMO DATA (ใช้เมื่อไม่มี Firebase) ============
 const DEMO = [
-  {ref:'DN001234',name:'สมชาย ใจดี',phone:'081-234-5678',email:'somchai@email.com',idCard:'1234567890123',
-   payment:'บัตรเครดิต/เดบิต',insurance:'ประกันชั้น 1 (+฿300/วัน)',
+  {ref:'DN001234',name:'Somchai Jaidee',phone:'081-234-5678',email:'somchai@email.com',idCard:'1234567890123',
+   payment:'Credit/Debit Card',insurance:'Full Coverage (+฿300/day)',
    carId:3,carName:'BMW 3 Series',carModel:'2024 · Auto · Petrol',
    carImg:'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&q=80',
    pickupDate:'2026-03-25',returnDate:'2026-03-28',days:3,pricePerDay:3500,total:10500,
    status:'confirmed',createdAt:'2026-03-23T09:15:00.000Z'},
-  {ref:'DN005678',name:'นภา รักสวย',phone:'089-876-5432',email:'napa@email.com',idCard:'9876543210987',
-   payment:'QR Code',insurance:'ประกันชั้น 2+ (+฿150/วัน)',
+  {ref:'DN005678',name:'Napa Raksui',phone:'089-876-5432',email:'napa@email.com',idCard:'9876543210987',
+   payment:'QR Code',insurance:'Basic (+฿150/day)',
    carId:4,carName:'Honda CR-V',carModel:'2024 · Auto · Hybrid',
    carImg:'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&q=80',
    pickupDate:'2026-03-26',returnDate:'2026-03-29',days:3,pricePerDay:1800,total:5400,
@@ -302,14 +311,14 @@ const DEMO = [
    carImg:'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&q=80',
    pickupDate:'2026-03-24',returnDate:'2026-03-26',days:2,pricePerDay:3500,total:7000,
    status:'completed',createdAt:'2026-03-22T14:00:00.000Z'},
-  {ref:'DN007777',name:'วิชัย มีสุข',phone:'062-555-9999',email:'wichai@email.com',idCard:'1111111111111',
-   payment:'โอนเงิน',insurance:'ไม่เพิ่มประกัน',
+  {ref:'DN007777',name:'Wichai Meesuk',phone:'062-555-9999',email:'wichai@email.com',idCard:'1111111111111',
+   payment:'Bank Transfer',insurance:'No Extra Insurance',
    carId:1,carName:'Toyota Yaris',carModel:'2024 · Auto · Petrol',
    carImg:'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=400&q=80',
    pickupDate:'2026-03-27',returnDate:'2026-03-30',days:3,pricePerDay:800,total:2400,
    status:'pending',createdAt:'2026-03-23T16:45:00.000Z'},
-  {ref:'DN003333',name:'มาลี ดอกไม้',phone:'085-333-4444',email:'malee@email.com',idCard:'5555555555555',
-   payment:'ชำระที่รับรถ',insurance:'ประกันชั้น 1 (+฿300/วัน)',
+  {ref:'DN003333',name:'Malee Dokmai',phone:'085-333-4444',email:'malee@email.com',idCard:'5555555555555',
+   payment:'Pay at Pickup',insurance:'Full Coverage (+฿300/day)',
    carId:5,carName:'Ford Everest',carModel:'2024 · Auto · Diesel',
    carImg:'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=400&q=80',
    pickupDate:'2026-03-23',returnDate:'2026-03-24',days:1,pricePerDay:2200,total:2200,
@@ -345,6 +354,7 @@ function doLogin() {
   }
 }
 function doLogout() {
+  if (!confirm('Are you sure you want to logout?')) return;
   document.getElementById('login-screen').style.display = 'flex';
 }
 
@@ -375,7 +385,7 @@ async function loadBookings() {
   allBookings.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
   updateStats();
   renderTable();
-  document.getElementById('last-updated').textContent = 'อัปเดต: ' + new Date().toLocaleTimeString('th-TH');
+  document.getElementById('last-updated').textContent = 'Updated: ' + new Date().toLocaleTimeString('th-TH');
 }
 
 // ============ STATS ============
@@ -398,15 +408,15 @@ function renderTable() {
     const q = searchQuery.toLowerCase();
     data = data.filter(b => b.name?.toLowerCase().includes(q) || b.ref?.toLowerCase().includes(q) || b.carName?.toLowerCase().includes(q) || b.phone?.includes(q));
   }
-  document.getElementById('table-count').textContent = data.length + ' รายการ';
+  document.getElementById('table-count').textContent = data.length + ' records';
   if (data.length === 0) {
-    document.getElementById('table-body-wrap').innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><p>ไม่พบรายการจอง</p></div>';
+    document.getElementById('table-body-wrap').innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><p>No bookings found</p></div>';
     return;
   }
   document.getElementById('table-body-wrap').innerHTML = `
     <table>
       <thead><tr>
-        <th>Ref</th><th>รถ</th><th>ลูกค้า</th><th>วันที่</th><th>จำนวนวัน</th><th>ราคารวม</th><th>สถานะ</th><th>จัดการ</th>
+        <th>Ref</th><th>Car</th><th>Customer</th><th>Dates</th><th>Days</th><th>Total</th><th>Status</th><th>Actions</th>
       </tr></thead>
       <tbody>${data.map(b => `
         <tr>
@@ -414,11 +424,11 @@ function renderTable() {
           <td><div class="car-cell"><img src="${b.carImg||''}" class="car-thumb" onerror="this.style.display='none'" alt=""><div class="car-cell-info"><div class="car-cell-name">${b.carName}</div><div class="car-cell-model">${b.carModel||''}</div></div></div></td>
           <td><div class="customer-name">${b.name}</div><div class="customer-contact">${b.phone}<br>${b.email}</div></td>
           <td class="date-cell">${b.pickupDate}<span class="date-arrow">→</span>${b.returnDate}</td>
-          <td><span class="days-badge">${b.days} วัน</span></td>
+          <td><span class="days-badge">${b.days} days</span></td>
           <td class="price-cell">฿${(b.total||0).toLocaleString()}</td>
           <td><span class="status ${b.status}" onclick="cycleStatus('${b.ref}')">${statusLabel(b.status)}</span></td>
           <td><div class="action-btns">
-            <button class="act-btn" onclick="openDetail('${b.ref}')">👁 ดู</button>
+            <button class="act-btn" onclick="openDetail('${b.ref}')">👁 View</button>
             <button class="act-btn danger" onclick="deleteBooking('${b.ref}')">🗑</button>
           </div></td>
         </tr>`).join('')}
@@ -427,7 +437,7 @@ function renderTable() {
 }
 
 function statusLabel(s) {
-  return {pending:'รอยืนยัน',confirmed:'ยืนยันแล้ว',completed:'เสร็จสิ้น',cancelled:'ยกเลิก'}[s]||s;
+  return {pending:'Pending',confirmed:'Confirmed',completed:'Completed',cancelled:'Cancelled'}[s]||s;
 }
 function formatDate(iso) {
   if (!iso) return '—';
@@ -488,21 +498,21 @@ function openDetail(ref) {
   if (!b) return;
   currentBooking = b;
   document.getElementById('d-ref').textContent = '# ' + b.ref;
-  document.getElementById('d-date').textContent = 'จองเมื่อ: ' + formatDate(b.createdAt);
+  document.getElementById('d-date').textContent = 'Booked: ' + formatDate(b.createdAt);
   document.getElementById('d-car').innerHTML = `
     <img src="${b.carImg||''}" style="width:120px;height:75px;object-fit:cover;border:1px solid var(--border)" onerror="this.style.display='none'" alt="">
-    <div><h4 style="font-family:'Playfair Display',serif;font-size:1.1rem">${b.carName}</h4><p style="font-size:.82rem;color:var(--text3);margin-top:.2rem">${b.carModel||''}</p><p style="font-size:.82rem;color:var(--text3)">฿${(b.pricePerDay||0).toLocaleString()} / วัน</p></div>`;
+    <div><h4 style="font-family:'Playfair Display',serif;font-size:1.1rem">${b.carName}</h4><p style="font-size:.82rem;color:var(--text3);margin-top:.2rem">${b.carModel||''}</p><p style="font-size:.82rem;color:var(--text3)">฿${(b.pricePerDay||0).toLocaleString()} / day</p></div>`;
   document.getElementById('d-info').innerHTML = `
-    <div class="detail-field"><label>ชื่อลูกค้า</label><p>${b.name}</p></div>
-    <div class="detail-field"><label>เบอร์โทร</label><p>${b.phone}</p></div>
-    <div class="detail-field"><label>อีเมล</label><p>${b.email}</p></div>
-    <div class="detail-field"><label>บัตรประชาชน</label><p>${b.idCard||'-'}</p></div>
-    <div class="detail-field"><label>วันรับรถ</label><p>${b.pickupDate}</p></div>
-    <div class="detail-field"><label>วันคืนรถ</label><p>${b.returnDate} (${b.days} วัน)</p></div>
-    <div class="detail-field"><label>ชำระเงิน</label><p>${b.payment||'-'}</p></div>
-    <div class="detail-field"><label>ประกัน</label><p>${b.insurance||'-'}</p></div>`;
+    <div class="detail-field"><label>Full Name</label><p>${b.name}</p></div>
+    <div class="detail-field"><label>Phone</label><p>${b.phone}</p></div>
+    <div class="detail-field"><label>Email</label><p>${b.email}</p></div>
+    <div class="detail-field"><label>ID / Passport</label><p>${b.idCard||'-'}</p></div>
+    <div class="detail-field"><label>Pickup Date</label><p>${b.pickupDate}</p></div>
+    <div class="detail-field"><label>Return Date</label><p>${b.returnDate} (${b.days} days)</p></div>
+    <div class="detail-field"><label>Payment</label><p>${b.payment||'-'}</p></div>
+    <div class="detail-field"><label>Insurance</label><p>${b.insurance||'-'}</p></div>`;
   document.getElementById('d-total').innerHTML = `
-    <div><div class="detail-total-label">ราคารวมทั้งหมด</div></div>
+    <div><div class="detail-total-label">Grand Total</div></div>
     <div class="detail-total-amount">฿${(b.total||0).toLocaleString()}</div>`;
   renderDetailActions();
   document.getElementById('detail-overlay').classList.add('open');
@@ -512,9 +522,9 @@ function renderDetailActions() {
   const b = currentBooking;
   document.getElementById('d-actions').innerHTML = `
     <span class="status ${b.status}" style="margin-right:.5rem">${statusLabel(b.status)}</span>
-    ${b.status!=='confirmed'&&b.status!=='completed'&&b.status!=='cancelled' ? `<button class="status-btn confirm" onclick="updateStatus('${b.ref}','confirmed')">✅ ยืนยัน</button>` : ''}
-    ${b.status==='confirmed' ? `<button class="status-btn complete" onclick="updateStatus('${b.ref}','completed')">🏁 เสร็จสิ้น</button>` : ''}
-    ${b.status!=='cancelled'&&b.status!=='completed' ? `<button class="status-btn cancel" onclick="updateStatus('${b.ref}','cancelled')">❌ ยกเลิก</button>` : ''}`;
+    ${b.status!=='confirmed'&&b.status!=='completed'&&b.status!=='cancelled' ? `<button class="status-btn confirm" onclick="updateStatus('${b.ref}','confirmed')">✅ Confirm</button>` : ''}
+    ${b.status==='confirmed' ? `<button class="status-btn complete" onclick="updateStatus('${b.ref}','completed')">🏁 Complete</button>` : ''}
+    ${b.status!=='cancelled'&&b.status!=='completed' ? `<button class="status-btn cancel" onclick="updateStatus('${b.ref}','cancelled')">❌ Cancel</button>` : ''}`;
 }
 
 function closeDetail() {
@@ -530,7 +540,7 @@ function renderCars() {
       <div style="padding:1rem">
         <div style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.3rem">${c.model}</div>
         <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;margin-bottom:.5rem">${c.name}</div>
-        <div style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;color:var(--gold)">฿${c.price.toLocaleString()}<span style="font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--text3);font-weight:400"> / วัน</span></div>
+        <div style="font-family:'AudiType',sans-serif;font-size:1.4rem;font-weight:900;color:var(--gold)">฿${c.price.toLocaleString()}<span style="font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--text3);font-weight:400"> / day</span></div>
       </div>
     </div>`).join('');
 }
