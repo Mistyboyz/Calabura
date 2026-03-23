@@ -121,12 +121,48 @@
   footer { text-align:center; padding:2.5rem; color:var(--text3); font-size:.85rem; border-top:1px solid var(--border); background:var(--bg2); transition:background .3s; }
   footer span { color:var(--gold); }
 
+  /* ===== TOAST ===== */
+  #toast-container { position:fixed; bottom:2rem; right:2rem; z-index:999; display:flex; flex-direction:column; gap:.6rem; }
+  .toast { display:flex; align-items:center; gap:.8rem; padding:.9rem 1.3rem; min-width:260px; max-width:360px; border:1px solid; font-size:.88rem; font-weight:500; animation:toastIn .3s ease; backdrop-filter:blur(8px); }
+  .toast.success { background:rgba(46,204,113,.12); border-color:rgba(46,204,113,.4); color:#2ecc71; }
+  .toast.error   { background:rgba(231,76,60,.12);  border-color:rgba(231,76,60,.4);  color:#e74c3c; }
+  .toast.info    { background:rgba(201,168,76,.12); border-color:rgba(201,168,76,.4); color:var(--gold); }
+  .toast-icon { font-size:1.1rem; flex-shrink:0; }
+  .toast.hide { animation:toastOut .3s ease forwards; }
+  @keyframes toastIn  { from{opacity:0;transform:translateX(30px)} to{opacity:1;transform:translateX(0)} }
+  @keyframes toastOut { from{opacity:1;transform:translateX(0)} to{opacity:0;transform:translateX(30px)} }
+
+  /* ===== SKELETON ===== */
+  .skeleton { background:linear-gradient(90deg,var(--bg3,#1e1e1e) 25%,rgba(201,168,76,.08) 50%,var(--bg3,#1e1e1e) 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; }
+  @keyframes shimmer { from{background-position:200% 0} to{background-position:-200% 0} }
+  .car-card.loading .car-img-wrap { background:var(--card); }
+  .skel-box { border-radius:0; }
+
+  /* ===== SCROLL REVEAL ===== */
+  .reveal { opacity:0; transform:translateY(32px); transition:opacity .6s ease, transform .6s ease; }
+  .reveal.visible { opacity:1; transform:translateY(0); }
+  .reveal-delay-1 { transition-delay:.1s; }
+  .reveal-delay-2 { transition-delay:.2s; }
+  .reveal-delay-3 { transition-delay:.3s; }
+
+  /* ===== FORM VALIDATION ===== */
+  .form-group input.valid   { border-color:#2ecc71 !important; }
+  .form-group input.invalid { border-color:#e74c3c !important; }
+  .field-msg { font-size:.72rem; margin-top:.25rem; height:.9rem; }
+  .field-msg.ok  { color:#2ecc71; }
+  .field-msg.err { color:#e74c3c; }
+
+  /* ===== 3D TILT ===== */
+  .car-card { transform-style:preserve-3d; will-change:transform; }
+  .tilt-inner { transform:translateZ(10px); }
+
   @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
   @keyframes slideUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
   @media(max-width:768px){ nav{padding:.8rem 1.2rem} nav ul{display:none} .hero{padding:6rem 1.5rem 3rem} .booking-section,.fleet-section{padding:3rem 1.5rem} .stats-bar{grid-template-columns:repeat(2,1fr)} .modal{padding:1.5rem} .modal-row{grid-template-columns:1fr} }
 </style>
 </head>
 <body>
+<div id="toast-container"></div>
 
 <nav>
   <div class="logo"><div class="logo-text">Mic : <span>Electric Car</span></div></div>
@@ -416,7 +452,7 @@ function toggleTheme() {
 // TODO: เปลี่ยน YOUR_PROJECT_ID เป็น Project ID ของคุณจาก Firebase Console
 const FIREBASE_URL = 'https://calabura-ea686-default-rtdb.asia-southeast1.firebasedatabase.app';
 
-const BASE_IMG = 'https://mistyboyz.github.io/Car-booking/';
+const BASE_IMG = 'https://mistyboyz.github.io/Calabura/';
 const cars = [
   {id:1,catKey:'type_eco',name:'Toyota Yaris',model:'2024 · Auto · Petrol',price:800,features:['5 Seats','A/C','Bluetooth','Rear Cam'],
    img:BASE_IMG+'toyota-yaris.png'},
