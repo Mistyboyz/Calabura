@@ -177,7 +177,6 @@
 </head>
 <body>
 <div id="toast-container"></div>
-
 <nav>
   <div class="logo"><div class="logo-text">Mic : <span>Electric Car</span></div></div>
   <ul>
@@ -197,7 +196,7 @@
       </div>
     </div>
     <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">🌙</button>
-    <button class="nav-btn" onclick="document.getElementById('booking').scrollIntoView({behavior:'smooth'})" data-i18n="nav_book">จองเลย</button>
+    <button class="nav-btn" onclick="document.getElementById('auth-screen').style.display='flex';showAuthTab('login')" id="nav-auth-btn">Sign In</button>
   </div>
 </nav>
 
@@ -293,23 +292,60 @@
         <div class="modal-row">
           <div class="form-group">
             <label data-i18n="form_pay">วิธีชำระเงิน</label>
-            <select id="b-payment">
-              <option data-i18n="pay1">บัตรเครดิต/เดบิต</option>
-              <option data-i18n="pay2">โอนเงิน</option>
-              <option>QR Code</option>
-              <option data-i18n="pay3">ชำระที่รับรถ</option>
+            <select id="b-payment" onchange="togglePaymentFields()">
+              <option value="credit_card" data-i18n="pay1">Credit / Debit Card</option>
+              <option value="promptpay" data-i18n="pay2">PromptPay QR</option>
+              <option value="pay_at_pickup" data-i18n="pay3">Pay at Pickup</option>
             </select>
           </div>
           <div class="form-group">
             <label data-i18n="form_ins">ประกันภัย</label>
             <select id="b-insurance">
-              <option data-i18n="ins1">ประกันชั้น 1 (+฿300/วัน)</option>
-              <option data-i18n="ins2">ประกันชั้น 2+ (+฿150/วัน)</option>
-              <option data-i18n="ins3">ไม่เพิ่มประกัน</option>
+              <option data-i18n="ins1">Full Coverage (+฿300/day)</option>
+              <option data-i18n="ins2">Basic (+฿150/day)</option>
+              <option data-i18n="ins3">No Extra Insurance</option>
             </select>
           </div>
         </div>
-        <button class="btn-primary" style="width:100%;padding:1rem;font-size:1rem" onclick="confirmBooking()" data-i18n="btn_confirm">ยืนยันการจอง →</button>
+
+        <!-- CREDIT CARD FIELDS -->
+        <div id="credit-card-fields">
+          <div style="background:rgba(201,168,76,.05);border:1px solid var(--border);padding:1.2rem;margin-bottom:.5rem">
+            <p style="font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:1rem">💳 Card Details</p>
+            <div class="form-group" style="margin-bottom:.8rem">
+              <label>Card Number</label>
+              <input type="text" id="card-number" placeholder="0000 0000 0000 0000" maxlength="19" oninput="formatCardNumber(this)">
+            </div>
+            <div class="modal-row">
+              <div class="form-group">
+                <label>Expiry (MM/YY)</label>
+                <input type="text" id="card-expiry" placeholder="MM/YY" maxlength="5" oninput="formatExpiry(this)">
+              </div>
+              <div class="form-group">
+                <label>CVV</label>
+                <input type="text" id="card-cvv" placeholder="123" maxlength="4">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Name on Card</label>
+              <input type="text" id="card-name" placeholder="JOHN SMITH">
+            </div>
+            <p style="font-size:.72rem;color:var(--text3);margin-top:.6rem">🔒 Secured by Omise · Test: use 4242 4242 4242 4242</p>
+          </div>
+        </div>
+
+        <!-- PROMPTPAY FIELDS -->
+        <div id="promptpay-fields" style="display:none">
+          <div style="background:rgba(201,168,76,.05);border:1px solid var(--border);padding:1.2rem;text-align:center">
+            <p style="font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.8rem">📱 PromptPay QR</p>
+            <p style="font-size:.85rem;color:var(--text2)">QR Code will be generated after confirming.<br>Scan and pay within 10 minutes.</p>
+          </div>
+        </div>
+
+        <div id="pay-error" style="color:#e74c3c;font-size:.82rem;min-height:1rem;margin-top:.3rem"></div>
+        <button class="btn-primary" id="pay-btn" style="width:100%;padding:1rem;font-size:1rem" onclick="processPayment()">
+          💳 Pay & Confirm Booking →
+        </button>
       </div>
     </div>
     <div class="success-msg" id="success-msg">
@@ -510,7 +546,10 @@ function renderFleet(filterKey) {
       <div class="car-features">${c.features.map(f=>`<span class="tag">${f}</span>`).join('')}</div>
       <div class="car-price">
         <div><span class="price-amount">฿${c.price.toLocaleString()}</span><div class="price-unit">${t.per_day}</div></div>
-        <button class="btn-book" onclick="openModal(${c.id})">${t.car_book}</button>
+        ${(typeof auth !== 'undefined' && auth.currentUser)
+          ? `<button class="btn-book" onclick="openModal(${c.id})">${t.car_book}</button>`
+          : `<button class="btn-book btn-signin-prompt" onclick="document.getElementById('auth-screen').style.display='flex';showAuthTab('login')" style="background:var(--gold);color:#0a0a0a;border-color:var(--gold)">🔑 Sign In to Book</button>`
+        }
       </div>
     </div>`;
   }).join('');
@@ -594,6 +633,375 @@ document.getElementById('pickup-date').value=t1.toISOString().split('T')[0];
 document.getElementById('return-date').value=t2.toISOString().split('T')[0];
 applyLang('en');
 document.getElementById('modal').addEventListener('click',function(e){ if(e.target===this) closeModal(); });
+</script>
+
+<!-- ============ FIREBASE AUTH ============ -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, updateProfile } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDUx5yv-SLA6umvbreE06lqZKIvTH3AUx0",
+  authDomain: "calabura-ea686.firebaseapp.com",
+  databaseURL: "https://calabura-ea686-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "calabura-ea686",
+  storageBucket: "calabura-ea686.firebasestorage.app",
+  messagingSenderId: "952055824613",
+  appId: "1:952055824613:web:498e059b92c4cc03a5d40c"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+// ===== AUTH STATE =====
+onAuthStateChanged(auth, user => {
+  const navBtn = document.getElementById('nav-auth-btn');
+  if (user) {
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('user-bar').style.display = 'flex';
+    document.getElementById('user-name').textContent = user.displayName || user.email;
+    document.getElementById('user-avatar').textContent = (user.displayName || user.email)[0].toUpperCase();
+    if (navBtn) navBtn.style.display = 'none';
+  } else {
+    // ไม่บังคับ Login ตอนเปิดเว็บ — แค่อัปเดต UI เฉยๆ
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('user-bar').style.display = 'none';
+    if (navBtn) navBtn.style.display = 'block';
+  }
+  renderFleet();
+});
+
+// ===== REGISTER =====
+window.doRegister = async function() {
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pass = document.getElementById('reg-pass').value;
+  const pass2 = document.getElementById('reg-pass2').value;
+  const err = document.getElementById('auth-error');
+  err.textContent = '';
+  if (!name || !email || !pass) { err.textContent = 'Please fill in all fields.'; return; }
+  if (pass !== pass2) { err.textContent = 'Passwords do not match.'; return; }
+  if (pass.length < 6) { err.textContent = 'Password must be at least 6 characters.'; return; }
+  try {
+    document.getElementById('auth-submit-btn').disabled = true;
+    document.getElementById('auth-submit-btn').textContent = 'Creating account...';
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    await updateProfile(cred.user, { displayName: name });
+  } catch(e) {
+    err.textContent = e.code === 'auth/email-already-in-use' ? 'Email already registered.' : e.message;
+    document.getElementById('auth-submit-btn').disabled = false;
+    document.getElementById('auth-submit-btn').textContent = 'Create Account';
+  }
+}
+
+// ===== LOGIN =====
+window.doLogin = async function() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const err = document.getElementById('auth-error');
+  err.textContent = '';
+  if (!email || !pass) { err.textContent = 'Please fill in all fields.'; return; }
+  try {
+    document.getElementById('auth-submit-btn').disabled = true;
+    document.getElementById('auth-submit-btn').textContent = 'Signing in...';
+    await signInWithEmailAndPassword(auth, email, pass);
+  } catch(e) {
+    err.textContent = 'Invalid email or password.';
+    document.getElementById('auth-submit-btn').disabled = false;
+    document.getElementById('auth-submit-btn').textContent = 'Sign In';
+  }
+}
+
+// ===== GOOGLE LOGIN =====
+window.doGoogleLogin = async function() {
+  try {
+    await signInWithPopup(auth, provider);
+  } catch(e) {
+    document.getElementById('auth-error').textContent = e.message;
+  }
+}
+
+// ===== LOGOUT =====
+window.doLogout = async function() {
+  if (!confirm('Are you sure you want to sign out?')) return;
+  await signOut(auth);
+}
+
+// Auth ready
+</script>
+
+<!-- PROMPTPAY QR MODAL -->
+<div id="qr-overlay" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);justify-content:center;align-items:center">
+  <div style="background:var(--card);border:1px solid var(--border);padding:2.5rem;max-width:380px;width:100%;text-align:center;animation:slideUp .3s ease">
+    <h3 style="font-family:'Playfair Display',serif;font-size:1.4rem;margin-bottom:.5rem;color:var(--text)">Scan to Pay</h3>
+    <p style="font-size:.85rem;color:var(--text3);margin-bottom:1.5rem">Scan QR Code with your banking app</p>
+    <div id="qr-image-wrap" style="background:#fff;padding:1rem;display:inline-block;margin-bottom:1rem">
+      <img id="qr-image" src="" alt="QR Code" style="width:200px;height:200px">
+    </div>
+    <div id="qr-amount" style="font-family:'AudiType',sans-serif;font-size:1.8rem;font-weight:900;color:var(--gold);margin-bottom:.5rem"></div>
+    <p id="qr-status" style="font-size:.85rem;color:var(--text3);margin-bottom:1.5rem">⏳ Waiting for payment...</p>
+    <div id="qr-timer" style="font-family:'AudiType',sans-serif;font-size:1.2rem;color:var(--orange)"></div>
+    <button onclick="closeQR()" style="margin-top:1.5rem;background:transparent;border:1px solid var(--border);color:var(--text2);padding:.6rem 1.5rem;font-family:'DM Sans',sans-serif;cursor:pointer;font-size:.85rem">Cancel</button>
+  </div>
+</div>
+
+<!-- OMISE JS -->
+<script src="https://cdn.omise.co/omise.js"></script>
+<script>
+const OMISE_PKEY = 'pkey_test_676r11218omn703jx12';
+// NOTE: Secret key ต้องใช้ฝั่ง server เท่านั้น - ในที่นี้ใช้ test mode จำลองการทำงาน
+const OMISE_SKEY = 'skey_test_676r112gmaxvuehbab2';
+const FIREBASE_URL_PAY = 'https://calabura-ea686-default-rtdb.asia-southeast1.firebasedatabase.app';
+
+function togglePaymentFields() {
+  const method = document.getElementById('b-payment').value;
+  document.getElementById('credit-card-fields').style.display = method === 'credit_card' ? 'block' : 'none';
+  document.getElementById('promptpay-fields').style.display = method === 'promptpay' ? 'block' : 'none';
+  const btn = document.getElementById('pay-btn');
+  if (method === 'pay_at_pickup') {
+    btn.textContent = '✅ Confirm Booking (Pay at Pickup)';
+  } else if (method === 'promptpay') {
+    btn.textContent = '📱 Generate PromptPay QR →';
+  } else {
+    btn.textContent = '💳 Pay & Confirm Booking →';
+  }
+}
+
+function formatCardNumber(el) {
+  let v = el.value.replace(/\D/g,'').substring(0,16);
+  el.value = v.replace(/(.{4})/g,'$1 ').trim();
+}
+function formatExpiry(el) {
+  let v = el.value.replace(/\D/g,'');
+  if (v.length >= 2) v = v.substring(0,2) + '/' + v.substring(2,4);
+  el.value = v;
+}
+
+async function processPayment() {
+  const name = document.getElementById('b-name').value;
+  const phone = document.getElementById('b-phone').value;
+  const email = document.getElementById('b-email').value;
+  const method = document.getElementById('b-payment').value;
+  const err = document.getElementById('pay-error');
+  err.textContent = '';
+
+  if (!name || !phone || !email) { err.textContent = 'Please fill in all required fields.'; return; }
+
+  const btn = document.getElementById('pay-btn');
+  btn.disabled = true;
+  btn.textContent = 'Processing...';
+
+  // Pay at pickup — no payment needed
+  if (method === 'pay_at_pickup') {
+    await saveBooking('pay_at_pickup', null);
+    btn.disabled = false;
+    togglePaymentFields();
+    return;
+  }
+
+  // Credit Card via Omise
+  if (method === 'credit_card') {
+    const cardNum = document.getElementById('card-number').value.replace(/\s/g,'');
+    const expiry = document.getElementById('card-expiry').value.split('/');
+    const cvv = document.getElementById('card-cvv').value;
+    const cardName = document.getElementById('card-name').value;
+    if (!cardNum || !expiry[0] || !expiry[1] || !cvv || !cardName) {
+      err.textContent = 'Please fill in all card details.';
+      btn.disabled = false; togglePaymentFields(); return;
+    }
+    try {
+      Omise.setPublicKey(OMISE_PKEY);
+      Omise.createToken('card', {
+        name: cardName,
+        number: cardNum,
+        expiration_month: parseInt(expiry[0]),
+        expiration_year: parseInt('20' + expiry[1]),
+        security_code: cvv
+      }, async (statusCode, response) => {
+        if (statusCode !== 200) {
+          err.textContent = response.message || 'Card error. Please check your details.';
+          btn.disabled = false; togglePaymentFields(); return;
+        }
+        // In production: send token to your server to create charge
+        // For demo: simulate successful payment
+        await saveBooking('credit_card', response.id);
+        btn.disabled = false; togglePaymentFields();
+      });
+    } catch(e) {
+      err.textContent = 'Payment error: ' + e.message;
+      btn.disabled = false; togglePaymentFields();
+    }
+    return;
+  }
+
+  // PromptPay QR
+  if (method === 'promptpay') {
+    // Simulate QR generation (production needs server)
+    const total = selectedCar ? selectedCar.price * (parseInt(document.getElementById('b-days-hidden')?.value || 1)) : 0;
+    document.getElementById('qr-amount').textContent = '฿' + total.toLocaleString();
+    document.getElementById('qr-status').textContent = '⏳ Waiting for payment...';
+    // Use a placeholder QR (in production, generate real QR from Omise API via server)
+    document.getElementById('qr-image').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PromptPay:0952055824613:Amount:${total}`;
+    document.getElementById('qr-overlay').style.display = 'flex';
+    startQRTimer(600); // 10 minutes
+    btn.disabled = false; togglePaymentFields();
+    return;
+  }
+}
+
+let qrTimerInterval;
+function startQRTimer(seconds) {
+  clearInterval(qrTimerInterval);
+  let s = seconds;
+  const el = document.getElementById('qr-timer');
+  qrTimerInterval = setInterval(() => {
+    s--;
+    const m = Math.floor(s/60);
+    const sec = s % 60;
+    el.textContent = `⏱ ${m}:${sec.toString().padStart(2,'0')} remaining`;
+    if (s <= 0) {
+      clearInterval(qrTimerInterval);
+      document.getElementById('qr-status').textContent = '❌ QR expired. Please try again.';
+      el.textContent = '';
+    }
+  }, 1000);
+}
+
+function closeQR() {
+  clearInterval(qrTimerInterval);
+  document.getElementById('qr-overlay').style.display = 'none';
+}
+
+async function saveBooking(paymentMethod, tokenId) {
+  const p = document.getElementById('pickup-date').value;
+  const r = document.getElementById('return-date').value;
+  let days = 1;
+  if (p && r) { const d=(new Date(r)-new Date(p))/86400000; if(d>0) days=d; }
+  const ref = 'DN' + Date.now().toString().slice(-6);
+  const booking = {
+    ref, days,
+    name: document.getElementById('b-name').value,
+    phone: document.getElementById('b-phone').value,
+    email: document.getElementById('b-email').value,
+    idCard: document.getElementById('b-id').value || '-',
+    payment: paymentMethod,
+    omiseToken: tokenId || null,
+    insurance: document.getElementById('b-insurance').value,
+    carId: selectedCar.id,
+    carName: selectedCar.name,
+    carModel: selectedCar.model,
+    carImg: selectedCar.img,
+    pickupDate: p, returnDate: r,
+    pricePerDay: selectedCar.price,
+    total: selectedCar.price * days,
+    status: paymentMethod === 'pay_at_pickup' ? 'pending' : 'paid',
+    createdAt: new Date().toISOString()
+  };
+  try {
+    await fetch(`${FIREBASE_URL_PAY}/bookings/${ref}.json`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(booking)
+    });
+  } catch(e) { console.warn('Firebase save failed:', e); }
+  document.getElementById('booking-ref').textContent = '# ' + ref;
+  document.getElementById('modal-booking').style.display = 'none';
+  document.getElementById('success-msg').classList.add('show');
+}
+</script>
+<div id="auth-screen" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.92);backdrop-filter:blur(8px);justify-content:center;align-items:center;padding:1rem;">
+  <div style="background:var(--card);border:1px solid var(--border);width:100%;max-width:420px;padding:2.5rem;position:relative;animation:slideUp .3s ease">
+    <button id="auth-close-btn" onclick="document.getElementById('auth-screen').style.display='none'" style="position:absolute;top:1rem;right:1rem;background:none;border:1px solid var(--border);color:var(--text);width:32px;height:32px;cursor:pointer;font-size:1rem;transition:all .2s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">✕</button>
+
+    <!-- TABS -->
+    <div style="display:flex;gap:0;margin-bottom:2rem;border-bottom:1px solid var(--border)">
+      <button id="tab-login" onclick="showAuthTab('login')" style="flex:1;background:none;border:none;color:var(--gold);font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:700;padding:.8rem;cursor:pointer;border-bottom:2px solid var(--gold);transition:all .2s">Sign In</button>
+      <button id="tab-register" onclick="showAuthTab('register')" style="flex:1;background:none;border:none;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:500;padding:.8rem;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s">Create Account</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div id="form-login">
+      <h2 style="font-family:'Playfair Display',serif;font-size:1.6rem;margin-bottom:.4rem;color:var(--text)">Welcome Back</h2>
+      <p style="color:var(--text3);font-size:.85rem;margin-bottom:1.5rem">Sign in to book your car</p>
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div>
+          <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">Email</label>
+          <input id="login-email" type="email" placeholder="your@email.com" onkeydown="if(event.key==='Enter')doLogin()" style="width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:.8rem 1rem;font-family:'DM Sans',sans-serif;font-size:.95rem;outline:none;transition:border .2s" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div>
+          <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">Password</label>
+          <input id="login-pass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" style="width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:.8rem 1rem;font-family:'DM Sans',sans-serif;font-size:.95rem;outline:none;transition:border .2s" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <p id="auth-error" style="color:#e74c3c;font-size:.82rem;min-height:1.2rem"></p>
+        <button id="auth-submit-btn" onclick="doLogin()" style="background:var(--gold);color:#0a0a0a;border:none;padding:.9rem;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;transition:all .2s;width:100%" onmouseover="this.style.background='var(--gold-light)'" onmouseout="this.style.background='var(--gold)'">Sign In</button>
+        <div style="display:flex;align-items:center;gap:.8rem;color:var(--text3);font-size:.8rem"><div style="flex:1;height:1px;background:var(--border)"></div>OR<div style="flex:1;height:1px;background:var(--border)"></div></div>
+        <button onclick="doGoogleLogin()" style="background:transparent;border:1px solid var(--border);color:var(--text);padding:.8rem;font-family:'DM Sans',sans-serif;font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.6rem;transition:all .2s;width:100%" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.7 33.2 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.7-8 19.7-20 0-1.3-.1-2.7-.1-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 16 19 12 24 12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4c-7.7 0-14.4 4.1-18.1 10.3-.1.2-.4.4-.6.4z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.4-5l-6.2-5.2C29.3 35.3 26.8 36 24 36c-5.2 0-9.7-3-11.3-7.3l-6.5 5C9.6 39.9 16.4 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.9 2.4-2.5 4.4-4.5 5.8l6.2 5.2C40.8 35.6 44 30.3 44 24c0-1.3-.1-2.7-.4-4z"/></svg>
+          Continue with Google
+        </button>
+        <p style="text-align:center;font-size:.82rem;color:var(--text3)">Don't have an account? <span onclick="showAuthTab('register')" style="color:var(--gold);cursor:pointer;font-weight:600">Sign up</span></p>
+      </div>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div id="form-register" style="display:none">
+      <h2 style="font-family:'Playfair Display',serif;font-size:1.6rem;margin-bottom:.4rem;color:var(--text)">Create Account</h2>
+      <p style="color:var(--text3);font-size:.85rem;margin-bottom:1.5rem">Join us to start booking</p>
+      <div style="display:flex;flex-direction:column;gap:.9rem">
+        <div>
+          <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">Full Name</label>
+          <input id="reg-name" type="text" placeholder="John Smith" style="width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:.8rem 1rem;font-family:'DM Sans',sans-serif;font-size:.95rem;outline:none;transition:border .2s" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div>
+          <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">Email</label>
+          <input id="reg-email" type="email" placeholder="your@email.com" style="width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:.8rem 1rem;font-family:'DM Sans',sans-serif;font-size:.95rem;outline:none;transition:border .2s" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div>
+          <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">Password</label>
+          <input id="reg-pass" type="password" placeholder="Min. 6 characters" style="width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:.8rem 1rem;font-family:'DM Sans',sans-serif;font-size:.95rem;outline:none;transition:border .2s" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div>
+          <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">Confirm Password</label>
+          <input id="reg-pass2" type="password" placeholder="Repeat password" onkeydown="if(event.key==='Enter')doRegister()" style="width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:.8rem 1rem;font-family:'DM Sans',sans-serif;font-size:.95rem;outline:none;transition:border .2s" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <p id="auth-error" style="color:#e74c3c;font-size:.82rem;min-height:1.2rem"></p>
+        <button id="auth-submit-btn" onclick="doRegister()" style="background:var(--gold);color:#0a0a0a;border:none;padding:.9rem;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;width:100%" onmouseover="this.style.background='var(--gold-light)'" onmouseout="this.style.background='var(--gold)'">Create Account</button>
+        <div style="display:flex;align-items:center;gap:.8rem;color:var(--text3);font-size:.8rem"><div style="flex:1;height:1px;background:var(--border)"></div>OR<div style="flex:1;height:1px;background:var(--border)"></div></div>
+        <button onclick="doGoogleLogin()" style="background:transparent;border:1px solid var(--border);color:var(--text);padding:.8rem;font-family:'DM Sans',sans-serif;font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.6rem;transition:all .2s;width:100%" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.7 33.2 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.7-8 19.7-20 0-1.3-.1-2.7-.1-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 16 19 12 24 12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4c-7.7 0-14.4 4.1-18.1 10.3-.1.2-.4.4-.6.4z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.4-5l-6.2-5.2C29.3 35.3 26.8 36 24 36c-5.2 0-9.7-3-11.3-7.3l-6.5 5C9.6 39.9 16.4 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.9 2.4-2.5 4.4-4.5 5.8l6.2 5.2C40.8 35.6 44 30.3 44 24c0-1.3-.1-2.7-.4-4z"/></svg>
+          Continue with Google
+        </button>
+        <p style="text-align:center;font-size:.82rem;color:var(--text3)">Already have an account? <span onclick="showAuthTab('login')" style="color:var(--gold);cursor:pointer;font-weight:600">Sign in</span></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- USER BAR in NAV (inject via JS) -->
+<script>
+// Add user bar to nav
+const userBarHTML = `
+  <div id="user-bar" style="display:none;align-items:center;gap:.7rem;position:fixed;top:1rem;right:1rem;z-index:101">
+    <div style="display:flex;align-items:center;gap:.5rem;background:var(--input-bg);border:1px solid var(--border);padding:.4rem .9rem .4rem .5rem">
+      <div id="user-avatar" style="width:28px;height:28px;background:var(--gold);color:#0a0a0a;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem">U</div>
+      <span id="user-name" style="font-size:.82rem;color:var(--text);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+    </div>
+    <button onclick="doLogout()" style="background:transparent;border:1px solid var(--border);color:var(--text2);padding:.4rem .8rem;font-family:'DM Sans',sans-serif;font-size:.78rem;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='#e74c3c';this.style.color='#e74c3c'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">Sign Out</button>
+  </div>`;
+document.body.insertAdjacentHTML('beforeend', userBarHTML);
+
+function showAuthTab(tab) {
+  const isLogin = tab === 'login';
+  document.getElementById('form-login').style.display = isLogin ? 'block' : 'none';
+  document.getElementById('form-register').style.display = isLogin ? 'none' : 'block';
+  document.getElementById('tab-login').style.color = isLogin ? 'var(--gold)' : 'var(--text2)';
+  document.getElementById('tab-login').style.borderBottomColor = isLogin ? 'var(--gold)' : 'transparent';
+  document.getElementById('tab-register').style.color = isLogin ? 'var(--text2)' : 'var(--gold)';
+  document.getElementById('tab-register').style.borderBottomColor = isLogin ? 'transparent' : 'var(--gold)';
+  document.getElementById('auth-error') && (document.getElementById('auth-error').textContent = '');
+  const btn = document.getElementById('auth-submit-btn');
+  if (btn) { btn.disabled = false; btn.textContent = isLogin ? 'Sign In' : 'Create Account'; }
+}
 </script>
 </body>
 </html>
