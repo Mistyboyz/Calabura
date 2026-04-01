@@ -637,32 +637,43 @@ async function updateStatus(ref, newStatus) {
   const b = allBookings.find(x=>x.ref===ref);
   if (!b) return;
   b.status = newStatus;
+
   if (!usingDemo) {
     try {
-      await fetch(`${FIREBASE_URL}/bookings/${ref}/status.json`, {
-        method:'PUT', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(newStatus)
-      });
-      // Save to history when car is returned
       if (newStatus === 'completed') {
-        const historyEntry = {
-          ...b,
-          completedAt: new Date().toISOString(),
-          status: 'completed'
-        };
+        // 1. Save to history
+        const historyEntry = { ...b, completedAt: new Date().toISOString(), status: 'completed' };
         await fetch(`${FIREBASE_URL}/history/${ref}.json`, {
           method:'PUT', headers:{'Content-Type':'application/json'},
           body: JSON.stringify(historyEntry)
         });
+        // 2. Delete from bookings → รถกลับมาโชว์หน้า User
+        await fetch(`${FIREBASE_URL}/bookings/${ref}.json`, { method:'DELETE' });
+        allBookings = allBookings.filter(x => x.ref !== ref);
+
+      } else if (newStatus === 'cancelled') {
+        // Save cancelled record then delete → รถกลับมาโชว์หน้า User
+        const cancelEntry = { ...b, cancelledAt: new Date().toISOString(), status: 'cancelled' };
+        await fetch(`${FIREBASE_URL}/history/${ref}.json`, {
+          method:'PUT', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(cancelEntry)
+        });
+        await fetch(`${FIREBASE_URL}/bookings/${ref}.json`, { method:'DELETE' });
+        allBookings = allBookings.filter(x => x.ref !== ref);
+
+      } else {
+        // Just update status
+        await fetch(`${FIREBASE_URL}/bookings/${ref}/status.json`, {
+          method:'PUT', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(newStatus)
+        });
       }
-    } catch(e){}
+    } catch(e) { console.error('updateStatus error:', e); }
   }
+
   updateStats();
   renderTable();
-  if (currentBooking?.ref === ref) {
-    currentBooking.status = newStatus;
-    renderDetailActions();
-  }
+  closeDetail();
 }
 
 async function deleteBooking(ref) {
