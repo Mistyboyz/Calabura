@@ -653,12 +653,30 @@ function openModal(id) {
     <div class="summary-row"><span class="summary-label">${t.s_price}</span><span>฿${selectedCar.price.toLocaleString()}</span></div>
     <div class="summary-row"><span class="summary-label">${t.s_days}</span><span>${days} ${t.day_unit}</span></div>
     <div class="summary-row"><span class="summary-label">${t.s_total}</span><span>฿${(selectedCar.price*days).toLocaleString()}</span></div>`;
+
+  // Auto-fill from logged in user
+  if (window.currentUser) {
+    const emailEl = document.getElementById('b-email');
+    const nameEl = document.getElementById('b-name');
+    if (emailEl && !emailEl.value) emailEl.value = window.currentUser.email || '';
+    if (nameEl && !nameEl.value) nameEl.value = window.currentUser.displayName || '';
+    // Lock email field so user can't accidentally change it
+    if (emailEl) { emailEl.readOnly = true; emailEl.style.opacity = '.7'; emailEl.style.cursor = 'not-allowed'; }
+  }
+
   document.getElementById('modal-booking').style.display='block';
   document.getElementById('success-msg').classList.remove('show');
   document.getElementById('modal').classList.add('open');
 }
 
-function closeModal() { document.getElementById('modal').classList.remove('open'); }
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  // Reset email field lock for next open
+  const emailEl = document.getElementById('b-email');
+  if (emailEl) { emailEl.value = ''; emailEl.readOnly = false; emailEl.style.opacity = ''; emailEl.style.cursor = ''; }
+  document.getElementById('b-name').value = '';
+  document.getElementById('b-phone').value = '';
+}
 
 async function confirmBooking() {
   const t = T[lang];
