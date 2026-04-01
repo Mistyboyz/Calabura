@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Profile — Mic : Electric Car</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0a0a; --bg2:#111; --bg3:#1a1a1a; --card:#161616;
+  --text:#f0ede8; --text2:rgba(240,237,232,.55); --text3:#6b6760;
+  --gold:#c9a84c; --gold-light:#e8c97a; --gold-dim:rgba(201,168,76,.15);
+  --border:rgba(201,168,76,.18); --border2:rgba(255,255,255,.06);
+  --green:#2ecc71; --red:#e74c3c; --blue:#3498db; --orange:#f39c12;
+  --shadow:0 8px 32px rgba(0,0,0,.6);
+  --radius:0;
+}
+body.light {
+  --bg:#f5f3ef; --bg2:#fff; --bg3:#f0ede8; --card:#fff;
+  --text:#1a1a1a; --text2:rgba(26,26,26,.55); --text3:#999;
+  --border:rgba(201,168,76,.25); --border2:rgba(0,0,0,.07);
+  --gold-dim:rgba(201,168,76,.1); --shadow:0 8px 32px rgba(0,0,0,.12);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s;}
+
+/* NAV */
+nav{position:fixed;top:0;width:100%;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1rem 2.5rem;background:rgba(10,10,10,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+body.light nav{background:rgba(245,243,239,.95);}
+.nav-logo{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:900;color:var(--text);text-decoration:none;}
+.nav-logo span{color:var(--gold);}
+.nav-right{display:flex;align-items:center;gap:.8rem;}
+.nav-back{background:transparent;border:1px solid var(--border);color:var(--text2);padding:.45rem 1rem;font-family:'DM Sans',sans-serif;font-size:.82rem;cursor:pointer;transition:all .2s;text-decoration:none;display:flex;align-items:center;gap:.4rem;}
+.nav-back:hover{border-color:var(--gold);color:var(--gold);}
+.theme-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);width:34px;height:34px;cursor:pointer;font-size:.95rem;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.theme-btn:hover{border-color:var(--gold);}
+
+/* LAYOUT */
+.page{max-width:1100px;margin:0 auto;padding:6rem 2rem 3rem;}
+
+/* PROFILE HERO */
+.profile-hero{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2rem;padding:2.5rem;background:var(--card);border:1px solid var(--border);margin-bottom:2rem;position:relative;overflow:hidden;}
+.profile-hero::before{content:'';position:absolute;top:0;right:0;width:300px;height:100%;background:radial-gradient(ellipse at right,rgba(201,168,76,.08) 0%,transparent 70%);pointer-events:none;}
+.avatar-wrap{position:relative;}
+.avatar{width:80px;height:80px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:#0a0a0a;border:3px solid var(--gold);flex-shrink:0;}
+.avatar-edit{position:absolute;bottom:0;right:0;width:24px;height:24px;background:var(--gold);border:2px solid var(--bg);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.65rem;color:#0a0a0a;}
+.profile-info h1{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;margin-bottom:.2rem;}
+.profile-email{font-size:.85rem;color:var(--text3);display:flex;align-items:center;gap:.4rem;}
+.provider-badge{font-size:.68rem;padding:.15rem .5rem;border:1px solid var(--border);color:var(--text3);}
+.profile-stats{display:flex;gap:2rem;}
+.pstat{text-align:center;}
+.pstat-num{font-family:'AudiType',sans-serif;font-size:1.6rem;font-weight:900;color:var(--gold);display:block;}
+.pstat-label{font-size:.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;}
+
+/* TABS */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:2rem;overflow-x:auto;}
+.tab-btn{background:none;border:none;border-bottom:2px solid transparent;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:500;padding:.9rem 1.5rem;cursor:pointer;white-space:nowrap;transition:all .2s;}
+.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold);}
+.tab-btn:hover:not(.active){color:var(--text);}
+
+/* TAB PANELS */
+.tab-panel{display:none;animation:fadeUp .3s ease;}
+.tab-panel.active{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* SECTION */
+.section-card{background:var(--card);border:1px solid var(--border);padding:1.8rem;margin-bottom:1.2rem;}
+.section-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;margin-bottom:1.4rem;display:flex;align-items:center;gap:.6rem;}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.form-group{display:flex;flex-direction:column;gap:.4rem;}
+.form-group.full{grid-column:1/-1;}
+.form-group label{font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;}
+.form-group input,.form-group select,.form-group textarea{background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:border .2s;resize:vertical;}
+body.light .form-group input,body.light .form-group select,body.light .form-group textarea{background:var(--bg3);}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--gold);}
+.form-group input:disabled{opacity:.5;cursor:not-allowed;}
+.form-group select option{background:var(--card);}
+.btn-save{background:var(--gold);color:#0a0a0a;border:none;padding:.75rem 2rem;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.9rem;cursor:pointer;transition:all .2s;margin-top:.5rem;}
+.btn-save:hover{background:var(--gold-light);}
+.btn-outline-sm{background:transparent;border:1px solid var(--border);color:var(--text2);padding:.5rem 1rem;font-family:'DM Sans',sans-serif;font-size:.8rem;cursor:pointer;transition:all .2s;}
+.btn-outline-sm:hover{border-color:var(--gold);color:var(--gold);}
+.save-msg{font-size:.8rem;color:var(--green);margin-top:.5rem;display:none;}
+
+/* RENTALS */
+.rental-tabs{display:flex;gap:.5rem;margin-bottom:1.5rem;}
+.rental-tab{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:.45rem 1.1rem;font-family:'DM Sans',sans-serif;font-size:.82rem;cursor:pointer;transition:all .2s;}
+.rental-tab.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);}
+.rental-panel{display:none;}
+.rental-panel.active{display:block;}
+.rental-card{background:var(--bg3);border:1px solid var(--border2);padding:1.2rem 1.5rem;margin-bottom:.8rem;display:grid;grid-template-columns:auto 1fr auto;gap:1.2rem;align-items:center;transition:border .2s;}
+.rental-card:hover{border-color:var(--border);}
+.rental-car-img{width:90px;height:58px;object-fit:cover;border:1px solid var(--border);flex-shrink:0;}
+.rental-car-img-fallback{width:90px;height:58px;background:var(--bg2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.8rem;}
+.rental-info h4{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;margin-bottom:.2rem;}
+.rental-dates{font-size:.8rem;color:var(--text3);margin-bottom:.3rem;}
+.rental-meta{display:flex;gap:.8rem;flex-wrap:wrap;}
+.rental-tag{font-size:.72rem;padding:.2rem .6rem;background:var(--gold-dim);border:1px solid rgba(201,168,76,.2);color:var(--gold);}
+.rental-price{font-family:'AudiType',sans-serif;font-size:1.2rem;font-weight:900;color:var(--gold);text-align:right;white-space:nowrap;}
+.rental-status{font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-top:.3rem;}
+.rental-status.current{color:var(--green);}
+.rental-status.upcoming{color:var(--blue);}
+.rental-status.past{color:var(--text3);}
+.empty-rentals{text-align:center;padding:3rem;color:var(--text3);}
+.empty-icon{font-size:2.5rem;margin-bottom:.8rem;}
+
+/* REWARD TIER */
+.tier-card{padding:2rem;background:linear-gradient(135deg,var(--bg3) 0%,rgba(201,168,76,.08) 100%);border:1px solid var(--border);margin-bottom:1.2rem;position:relative;overflow:hidden;}
+.tier-badge{display:inline-flex;align-items:center;gap:.6rem;padding:.5rem 1.2rem;border:2px solid;font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;margin-bottom:1rem;}
+.tier-badge.bronze{border-color:#cd7f32;color:#cd7f32;background:rgba(205,127,50,.1);}
+.tier-badge.silver{border-color:#c0c0c0;color:#c0c0c0;background:rgba(192,192,192,.1);}
+.tier-badge.gold{border-color:var(--gold);color:var(--gold);background:var(--gold-dim);}
+.tier-badge.platinum{border-color:#e5e4e2;color:#e5e4e2;background:rgba(229,228,226,.1);}
+.tier-progress-wrap{margin:1.2rem 0;}
+.tier-progress-label{display:flex;justify-content:space-between;font-size:.78rem;color:var(--text3);margin-bottom:.4rem;}
+.tier-progress-bar{height:6px;background:var(--bg2);position:relative;}
+.tier-progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-light));transition:width 1s ease;}
+.tier-perks{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;margin-top:1.2rem;}
+.perk{background:var(--bg2);border:1px solid var(--border2);padding:1rem;text-align:center;}
+.perk-icon{font-size:1.5rem;margin-bottom:.4rem;}
+.perk-title{font-size:.78rem;font-weight:600;margin-bottom:.2rem;}
+.perk-desc{font-size:.72rem;color:var(--text3);}
+.tier-history{margin-top:1.2rem;}
+.points-row{display:flex;justify-content:space-between;align-items:center;padding:.6rem 0;border-bottom:1px solid var(--border2);font-size:.85rem;}
+.points-row:last-child{border-bottom:none;}
+.points-plus{color:var(--green);font-family:'AudiType',sans-serif;font-weight:700;}
+.points-minus{color:var(--red);font-family:'AudiType',sans-serif;font-weight:700;}
+
+/* TIER LEVELS */
+.tier-levels{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;margin-top:1.2rem;}
+.tier-level{background:var(--bg2);border:1px solid var(--border2);padding:1rem;text-align:center;transition:all .2s;}
+.tier-level.current-tier{border-color:var(--gold);background:var(--gold-dim);}
+.tier-level-icon{font-size:1.4rem;margin-bottom:.3rem;}
+.tier-level-name{font-family:'Playfair Display',serif;font-size:.85rem;font-weight:700;margin-bottom:.2rem;}
+.tier-level-pts{font-size:.72rem;color:var(--text3);}
+
+/* COMMS */
+.pref-row{display:flex;justify-content:space-between;align-items:center;padding:1rem 0;border-bottom:1px solid var(--border2);}
+.pref-row:last-child{border-bottom:none;}
+.pref-info h4{font-size:.9rem;font-weight:600;margin-bottom:.2rem;}
+.pref-info p{font-size:.78rem;color:var(--text3);}
+.toggle{position:relative;width:42px;height:24px;cursor:pointer;flex-shrink:0;}
+.toggle input{display:none;}
+.toggle-track{position:absolute;inset:0;background:var(--bg3);border:1px solid var(--border);transition:all .3s;}
+.toggle input:checked + .toggle-track{background:var(--gold);border-color:var(--gold);}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:16px;height:16px;background:#fff;transition:left .3s;}
+.toggle input:checked + .toggle-track + .toggle-thumb,.toggle input:checked ~ .toggle-thumb{left:21px;}
+.pref-section-title{font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:1rem;margin-top:.5rem;}
+.channel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;margin-bottom:1.5rem;}
+.channel-btn{background:var(--bg3);border:1px solid var(--border2);padding:1rem;text-align:center;cursor:pointer;transition:all .2s;}
+.channel-btn.selected{background:var(--gold-dim);border-color:var(--gold);}
+.channel-icon{font-size:1.4rem;margin-bottom:.3rem;}
+.channel-name{font-size:.8rem;font-weight:600;}
+
+/* DANGER ZONE */
+.danger-zone{border:1px solid rgba(231,76,60,.2);padding:1.5rem;}
+.danger-zone h3{color:var(--red);font-size:.9rem;font-weight:600;margin-bottom:.8rem;}
+.danger-zone p{font-size:.82rem;color:var(--text3);margin-bottom:1rem;}
+.btn-danger{background:transparent;border:1px solid var(--red);color:var(--red);padding:.6rem 1.2rem;font-family:'DM Sans',sans-serif;font-size:.82rem;cursor:pointer;transition:all .2s;}
+.btn-danger:hover{background:var(--red);color:#fff;}
+
+/* LOADING */
+.loading-pulse{width:100%;height:60px;background:linear-gradient(90deg,var(--bg3) 25%,rgba(201,168,76,.05) 50%,var(--bg3) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;}
+@keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+
+@media(max-width:768px){
+  nav{padding:.8rem 1.2rem;}
+  .page{padding:5rem 1rem 2rem;}
+  .profile-hero{grid-template-columns:auto 1fr;gap:1rem;}
+  .profile-stats{display:none;}
+  .form-grid{grid-template-columns:1fr;}
+  .tier-perks,.tier-levels,.channel-grid{grid-template-columns:repeat(2,1fr);}
+  .rental-card{grid-template-columns:1fr;gap:.8rem;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">Mic : <span>Electric Car</span></a>
+  <div class="nav-right">
+    <a class="nav-back" href="index.html">← Back to Home</a>
+    <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">🌙</button>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- PROFILE HERO -->
+  <div class="profile-hero">
+    <div class="avatar-wrap">
+      <div class="avatar" id="p-avatar">?</div>
+      <div class="avatar-edit" title="Change photo">✏️</div>
+    </div>
+    <div class="profile-info">
+      <h1 id="p-name">Loading...</h1>
+      <div class="profile-email">
+        <span id="p-email">—</span>
+        <span class="provider-badge" id="p-provider">—</span>
+      </div>
+      <div style="margin-top:.6rem;font-size:.78rem;color:var(--text3)">Member since <span id="p-since">—</span></div>
+    </div>
+    <div class="profile-stats">
+      <div class="pstat"><span class="pstat-num" id="ps-trips">0</span><span class="pstat-label">Trips</span></div>
+      <div class="pstat"><span class="pstat-num" id="ps-points">0</span><span class="pstat-label">Points</span></div>
+      <div class="pstat"><span class="pstat-num" id="ps-tier">—</span><span class="pstat-label">Tier</span></div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('profile',this)">👤 My Profile</button>
+    <button class="tab-btn" onclick="switchTab('rentals',this)">🚗 My Rentals</button>
+    <button class="tab-btn" onclick="switchTab('rewards',this)">⭐ Reward Tier</button>
+    <button class="tab-btn" onclick="switchTab('comms',this)">🔔 Preferences</button>
+  </div>
+
+  <!-- ===== TAB: PROFILE ===== -->
+  <div id="tab-profile" class="tab-panel active">
+    <div class="section-card">
+      <div class="section-title">Personal Information</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="f-name" placeholder="John Smith">
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="tel" id="f-phone" placeholder="08X-XXX-XXXX">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="f-email" disabled>
+        </div>
+        <div class="form-group">
+          <label>Date of Birth</label>
+          <input type="date" id="f-dob">
+        </div>
+        <div class="form-group">
+          <label>Nationality</label>
+          <select id="f-nationality">
+            <option value="">Select...</option>
+            <option>Thai</option><option>Japanese</option><option>Chinese</option>
+            <option>Korean</option><option>American</option><option>British</option>
+            <option>Australian</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Preferred Language</label>
+          <select id="f-lang">
+            <option value="en">English</option>
+            <option value="th">ภาษาไทย</option>
+            <option value="zh">中文</option>
+            <option value="ja">日本語</option>
+            <option value="ko">한국어</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>Address</label>
+          <textarea id="f-address" rows="2" placeholder="Your address..."></textarea>
+        </div>
+      </div>
+      <div style="margin-top:1.2rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+        <button class="btn-save" onclick="saveProfile()">💾 Save Changes</button>
+        <span class="save-msg" id="save-msg">✅ Saved successfully!</span>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">ID & License</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>ID / Passport Number</label>
+          <input type="text" id="f-idcard" placeholder="X XXXX XXXXX XX X">
+        </div>
+        <div class="form-group">
+          <label>Driver's License No.</label>
+          <input type="text" id="f-license" placeholder="License number">
+        </div>
+        <div class="form-group">
+          <label>License Expiry</label>
+          <input type="date" id="f-license-exp">
+        </div>
+        <div class="form-group">
+          <label>License Country</label>
+          <select id="f-license-country">
+            <option>Thailand</option><option>Japan</option><option>China</option>
+            <option>Korea</option><option>USA</option><option>UK</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-save" style="margin-top:1.2rem" onclick="saveProfile()">💾 Save</button>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">Security</div>
+      <div style="display:flex;flex-direction:column;gap:.8rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:.8rem 0;border-bottom:1px solid var(--border2)">
+          <div><div style="font-size:.9rem;font-weight:600">Password</div><div style="font-size:.78rem;color:var(--text3)">Last changed: —</div></div>
+          <button class="btn-outline-sm" onclick="alert('Password reset email sent!')">Change Password</button>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:.8rem 0;border-bottom:1px solid var(--border2)">
+          <div><div style="font-size:.9rem;font-weight:600">Two-Factor Authentication</div><div style="font-size:.78rem;color:var(--text3)">Add extra security to your account</div></div>
+          <button class="btn-outline-sm">Enable 2FA</button>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:.8rem 0">
+          <div><div style="font-size:.9rem;font-weight:600">Active Sessions</div><div style="font-size:.78rem;color:var(--text3)">Manage devices logged in</div></div>
+          <button class="btn-outline-sm">View Sessions</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="danger-zone">
+      <h3>⚠️ Danger Zone</h3>
+      <p>Once you delete your account, all data will be permanently removed and cannot be recovered.</p>
+      <button class="btn-danger" onclick="if(confirm('Are you sure? This cannot be undone.'))alert('Account deletion requested.')">Delete My Account</button>
+    </div>
+  </div>
+
+  <!-- ===== TAB: RENTALS ===== -->
+  <div id="tab-rentals" class="tab-panel">
+    <div class="rental-tabs">
+      <button class="rental-tab active" onclick="switchRental('current',this)">🟢 Current</button>
+      <button class="rental-tab" onclick="switchRental('upcoming',this)">🔵 Upcoming</button>
+      <button class="rental-tab" onclick="switchRental('past',this)">⬛ Past</button>
+    </div>
+
+    <div id="rental-current" class="rental-panel active">
+      <div id="current-list"><div class="loading-pulse"></div></div>
+    </div>
+    <div id="rental-upcoming" class="rental-panel">
+      <div id="upcoming-list"><div class="loading-pulse"></div></div>
+    </div>
+    <div id="rental-past" class="rental-panel">
+      <div id="past-list"><div class="loading-pulse"></div></div>
+    </div>
+  </div>
+
+  <!-- ===== TAB: REWARDS ===== -->
+  <div id="tab-rewards" class="tab-panel">
+    <div class="section-card">
+      <div class="section-title">Your Tier Status</div>
+      <div class="tier-card">
+        <div class="tier-badge gold" id="tier-badge">⭐ Gold Member</div>
+        <p style="font-size:.85rem;color:var(--text2);margin-bottom:1rem">You've earned <strong id="tier-points" style="color:var(--gold)">0 points</strong> in total. Keep renting to unlock more benefits!</p>
+        <div class="tier-progress-wrap">
+          <div class="tier-progress-label">
+            <span>Progress to Platinum</span>
+            <span id="tier-progress-text">0 / 5000 pts</span>
+          </div>
+          <div class="tier-progress-bar">
+            <div class="tier-progress-fill" id="tier-fill" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="tier-levels">
+          <div class="tier-level"><div class="tier-level-icon">🥉</div><div class="tier-level-name" style="color:#cd7f32">Bronze</div><div class="tier-level-pts">0 pts</div></div>
+          <div class="tier-level"><div class="tier-level-icon">🥈</div><div class="tier-level-name" style="color:#c0c0c0">Silver</div><div class="tier-level-pts">1,000 pts</div></div>
+          <div class="tier-level current-tier"><div class="tier-level-icon">🥇</div><div class="tier-level-name" style="color:var(--gold)">Gold</div><div class="tier-level-pts">3,000 pts</div></div>
+          <div class="tier-level"><div class="tier-level-icon">💎</div><div class="tier-level-name" style="color:#e5e4e2">Platinum</div><div class="tier-level-pts">5,000 pts</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">Your Benefits</div>
+      <div class="tier-perks">
+        <div class="perk"><div class="perk-icon">🏷️</div><div class="perk-title">10% Discount</div><div class="perk-desc">On all rentals</div></div>
+        <div class="perk"><div class="perk-icon">⚡</div><div class="perk-title">Priority Pickup</div><div class="perk-desc">Skip the queue</div></div>
+        <div class="perk"><div class="perk-icon">🚘</div><div class="perk-title">Free Upgrade</div><div class="perk-desc">Once per month</div></div>
+        <div class="perk"><div class="perk-icon">📞</div><div class="perk-title">Dedicated Support</div><div class="perk-desc">24/7 Gold line</div></div>
+        <div class="perk"><div class="perk-icon">🅿️</div><div class="perk-title">Free Parking</div><div class="perk-desc">At all locations</div></div>
+        <div class="perk"><div class="perk-icon">🎁</div><div class="perk-title">Birthday Bonus</div><div class="perk-desc">+500 pts gift</div></div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">Points History</div>
+      <div id="points-history">
+        <div class="loading-pulse"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TAB: COMMUNICATION PREFS ===== -->
+  <div id="tab-comms" class="tab-panel">
+    <div class="section-card">
+      <div class="section-title">Notification Channels</div>
+      <p class="pref-section-title">How would you like to hear from us?</p>
+      <div class="channel-grid">
+        <div class="channel-btn selected" onclick="this.classList.toggle('selected')" id="ch-email">
+          <div class="channel-icon">📧</div>
+          <div class="channel-name">Email</div>
+        </div>
+        <div class="channel-btn selected" onclick="this.classList.toggle('selected')" id="ch-sms">
+          <div class="channel-icon">💬</div>
+          <div class="channel-name">SMS</div>
+        </div>
+        <div class="channel-btn" onclick="this.classList.toggle('selected')" id="ch-push">
+          <div class="channel-icon">🔔</div>
+          <div class="channel-name">Push</div>
+        </div>
+      </div>
+
+      <p class="pref-section-title">Notification Types</p>
+      <div class="section-card" style="padding:0;border:none;background:transparent">
+        <div class="pref-row">
+          <div class="pref-info">
+            <h4>Booking Confirmations</h4>
+            <p>Receive confirmation when your booking is accepted</p>
+          </div>
+          <label class="toggle"><input type="checkbox" id="pref-booking" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="pref-row">
+          <div class="pref-info">
+            <h4>Pickup Reminders</h4>
+            <p>Get reminded 24h and 2h before pickup time</p>
+          </div>
+          <label class="toggle"><input type="checkbox" id="pref-reminder" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="pref-row">
+          <div class="pref-info">
+            <h4>Return Alerts</h4>
+            <p>Notifications when your rental is due for return</p>
+          </div>
+          <label class="toggle"><input type="checkbox" id="pref-return" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="pref-row">
+          <div class="pref-info">
+            <h4>Points & Rewards</h4>
+            <p>Updates on your points balance and tier changes</p>
+          </div>
+          <label class="toggle"><input type="checkbox" id="pref-points" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="pref-row">
+          <div class="pref-info">
+            <h4>Promotions & Offers</h4>
+            <p>Special deals, seasonal discounts, and new cars</p>
+          </div>
+          <label class="toggle"><input type="checkbox" id="pref-promo"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="pref-row">
+          <div class="pref-info">
+            <h4>Newsletter</h4>
+            <p>Monthly updates on fleet, travel tips, and more</p>
+          </div>
+          <label class="toggle"><input type="checkbox" id="pref-news"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+      </div>
+      <button class="btn-save" onclick="savePrefs()" style="margin-top:1rem">💾 Save Preferences</button>
+      <span class="save-msg" id="prefs-save-msg">✅ Preferences saved!</span>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">Language & Region</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Preferred Language</label>
+          <select id="pref-language">
+            <option value="en">English</option>
+            <option value="th">ภาษาไทย</option>
+            <option value="zh">中文</option>
+            <option value="ja">日本語</option>
+            <option value="ko">한국어</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Currency Display</label>
+          <select id="pref-currency">
+            <option>THB (฿)</option>
+            <option>USD ($)</option>
+            <option>JPY (¥)</option>
+            <option>CNY (¥)</option>
+            <option>KRW (₩)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Timezone</label>
+          <select id="pref-timezone">
+            <option>Asia/Bangkok (UTC+7)</option>
+            <option>Asia/Tokyo (UTC+9)</option>
+            <option>Asia/Shanghai (UTC+8)</option>
+            <option>America/New_York (UTC-5)</option>
+            <option>Europe/London (UTC+0)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Date Format</label>
+          <select id="pref-dateformat">
+            <option>DD/MM/YYYY</option>
+            <option>MM/DD/YYYY</option>
+            <option>YYYY-MM-DD</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-save" onclick="savePrefs()" style="margin-top:1.2rem">💾 Save</button>
+    </div>
+  </div>
+
+</div><!-- end page -->
+
+<!-- FIREBASE + AUTH -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
+const FIREBASE_URL = 'https://calabura-ea686-default-rtdb.asia-southeast1.firebasedatabase.app';
+
+const app = initializeApp({
+  apiKey: "AIzaSyDUx5yv-SLA6umvbreE06lqZKIvTH3AUx0",
+  authDomain: "calabura-ea686.firebaseapp.com",
+  databaseURL: FIREBASE_URL,
+  projectId: "calabura-ea686",
+  storageBucket: "calabura-ea686.firebasestorage.app",
+  messagingSenderId: "952055824613",
+  appId: "1:952055824613:web:498e059b92c4cc03a5d40c"
+});
+const auth = getAuth(app);
+
+onAuthStateChanged(auth, async user => {
+  if (!user) { window.location.href = 'index.html'; return; }
+
+  // Fill hero
+  const initials = (user.displayName || user.email)[0].toUpperCase();
+  document.getElementById('p-avatar').textContent = initials;
+  document.getElementById('p-name').textContent = user.displayName || 'No name set';
+  document.getElementById('p-email').textContent = user.email;
+  document.getElementById('f-email').value = user.email;
+  document.getElementById('f-name').value = user.displayName || '';
+  const provider = user.providerData[0]?.providerId === 'google.com' ? '🔵 Google' : '✉️ Email';
+  document.getElementById('p-provider').textContent = provider;
+  const since = user.metadata.creationTime ? new Date(user.metadata.creationTime).toLocaleDateString('en-US',{month:'long',year:'numeric'}) : '—';
+  document.getElementById('p-since').textContent = since;
+
+  // Load profile from Firebase
+  try {
+    const res = await fetch(`${FIREBASE_URL}/users/${user.uid}.json`);
+    if (res.ok) {
+      const d = await res.json();
+      if (d) {
+        if (d.phone) document.getElementById('f-phone').value = d.phone;
+        if (d.dob) document.getElementById('f-dob').value = d.dob;
+        if (d.nationality) document.getElementById('f-nationality').value = d.nationality;
+        if (d.address) document.getElementById('f-address').value = d.address;
+        if (d.idCard) document.getElementById('f-idcard').value = d.idCard;
+        if (d.license) document.getElementById('f-license').value = d.license;
+        if (d.licenseExp) document.getElementById('f-license-exp').value = d.licenseExp;
+        if (d.prefs) loadPrefs(d.prefs);
+      }
+    }
+  } catch(e){}
+
+  // Load bookings
+  await loadBookings(user.email);
+
+  window._auth = auth;
+  window._user = user;
+  window._firebase_url = FIREBASE_URL;
+});
+
+async function loadBookings(email) {
+  try {
+    const res = await fetch(`${FIREBASE_URL}/bookings.json`);
+    if (!res.ok) { renderEmpty(); return; }
+    const data = await res.json();
+    if (!data) { renderEmpty(); return; }
+
+    const all = Object.values(data).filter(b => b.email === email);
+    const today = new Date(); today.setHours(0,0,0,0);
+
+    const current = all.filter(b => {
+      const p = new Date(b.pickupDate); const r = new Date(b.returnDate);
+      return p <= today && r >= today && b.status !== 'cancelled';
+    });
+    const upcoming = all.filter(b => {
+      const p = new Date(b.pickupDate);
+      return p > today && b.status !== 'cancelled';
+    });
+    const past = all.filter(b => {
+      const r = new Date(b.returnDate);
+      return r < today || b.status === 'completed' || b.status === 'cancelled';
+    });
+
+    // Stats
+    document.getElementById('ps-trips').textContent = all.filter(b=>b.status!=='cancelled').length;
+    const totalSpent = all.filter(b=>b.status!=='cancelled').reduce((s,b)=>s+(b.total||0),0);
+    const points = Math.floor(totalSpent / 100); // 1 pt per 100 baht
+    document.getElementById('ps-points').textContent = points.toLocaleString();
+    const tier = points >= 5000 ? 'Platinum' : points >= 3000 ? 'Gold' : points >= 1000 ? 'Silver' : 'Bronze';
+    document.getElementById('ps-tier').textContent = tier;
+    updateTier(points, tier);
+    renderPointsHistory(all);
+
+    renderRentals('current-list', current, 'current');
+    renderRentals('upcoming-list', upcoming, 'upcoming');
+    renderRentals('past-list', past, 'past');
+  } catch(e) { renderEmpty(); }
+}
+
+function updateTier(points, tier) {
+  const tierMap = {Bronze:{icon:'🥉',class:'bronze',next:1000},Silver:{icon:'🥈',class:'silver',next:3000},Gold:{icon:'🥇',class:'gold',next:5000},Platinum:{icon:'💎',class:'platinum',next:5000}};
+  const t = tierMap[tier];
+  document.getElementById('tier-badge').className = `tier-badge ${t.class}`;
+  document.getElementById('tier-badge').textContent = `${t.icon} ${tier} Member`;
+  document.getElementById('tier-points').textContent = points.toLocaleString() + ' points';
+  const progress = tier === 'Platinum' ? 100 : (points / t.next) * 100;
+  document.getElementById('tier-fill').style.width = Math.min(progress,100) + '%';
+  document.getElementById('tier-progress-text').textContent = `${points.toLocaleString()} / ${t.next.toLocaleString()} pts`;
+  // Highlight current tier
+  const tierNames = ['Bronze','Silver','Gold','Platinum'];
+  document.querySelectorAll('.tier-level').forEach((el,i) => {
+    el.classList.toggle('current-tier', tierNames[i] === tier);
+  });
+}
+
+function renderRentals(containerId, list, type) {
+  const el = document.getElementById(containerId);
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-rentals"><div class="empty-icon">🚗</div><p>No ${type} rentals</p></div>`;
+    return;
+  }
+  el.innerHTML = list.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).map(b => `
+    <div class="rental-card">
+      <img src="${b.carImg||''}" class="rental-car-img" onerror="this.style.display='none'" alt="">
+      <div class="rental-info">
+        <h4>${b.carName}</h4>
+        <div class="rental-dates">📅 ${b.pickupDate} → ${b.returnDate} · ${b.days} day${b.days>1?'s':''}</div>
+        <div class="rental-meta">
+          <span class="rental-tag">${b.payment||'—'}</span>
+          <span class="rental-tag">${b.insurance||'—'}</span>
+          <span class="rental-tag"># ${b.ref}</span>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div class="rental-price">฿${(b.total||0).toLocaleString()}</div>
+        <div class="rental-status ${type}">${type === 'current' ? '🟢 Active' : type === 'upcoming' ? '🔵 Upcoming' : b.status === 'cancelled' ? '🔴 Cancelled' : '✅ Completed'}</div>
+      </div>
+    </div>`).join('');
+}
+
+function renderPointsHistory(bookings) {
+  const el = document.getElementById('points-history');
+  if (!bookings.length) { el.innerHTML = '<p style="color:var(--text3);font-size:.85rem">No points history yet.</p>'; return; }
+  el.innerHTML = bookings.filter(b=>b.status!=='cancelled').sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,8).map(b => {
+    const pts = Math.floor((b.total||0)/100);
+    return `<div class="points-row">
+      <div><div style="font-size:.85rem;font-weight:500">${b.carName}</div><div style="font-size:.75rem;color:var(--text3)">${b.pickupDate}</div></div>
+      <span class="points-plus">+${pts} pts</span>
+    </div>`;
+  }).join('');
+}
+
+function renderEmpty() {
+  ['current-list','upcoming-list','past-list'].forEach(id => {
+    document.getElementById(id).innerHTML = '<div class="empty-rentals"><div class="empty-icon">🚗</div><p>No rentals yet</p></div>';
+  });
+}
+
+function loadPrefs(prefs) {
+  if (prefs.booking !== undefined) document.getElementById('pref-booking').checked = prefs.booking;
+  if (prefs.reminder !== undefined) document.getElementById('pref-reminder').checked = prefs.reminder;
+  if (prefs.return !== undefined) document.getElementById('pref-return').checked = prefs.return;
+  if (prefs.points !== undefined) document.getElementById('pref-points').checked = prefs.points;
+  if (prefs.promo !== undefined) document.getElementById('pref-promo').checked = prefs.promo;
+  if (prefs.news !== undefined) document.getElementById('pref-news').checked = prefs.news;
+}
+
+window.saveProfile = async function() {
+  const user = window._user;
+  if (!user) return;
+  const data = {
+    phone: document.getElementById('f-phone').value,
+    dob: document.getElementById('f-dob').value,
+    nationality: document.getElementById('f-nationality').value,
+    address: document.getElementById('f-address').value,
+    idCard: document.getElementById('f-idcard').value,
+    license: document.getElementById('f-license').value,
+    licenseExp: document.getElementById('f-license-exp').value,
+  };
+  try {
+    await fetch(`${window._firebase_url}/users/${user.uid}.json`, {
+      method: 'PATCH', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(data)
+    });
+    const msg = document.getElementById('save-msg');
+    msg.style.display = 'inline';
+    setTimeout(() => msg.style.display = 'none', 3000);
+  } catch(e) { alert('Save failed.'); }
+}
+
+window.savePrefs = async function() {
+  const user = window._user;
+  if (!user) return;
+  const prefs = {
+    booking: document.getElementById('pref-booking').checked,
+    reminder: document.getElementById('pref-reminder').checked,
+    return: document.getElementById('pref-return').checked,
+    points: document.getElementById('pref-points').checked,
+    promo: document.getElementById('pref-promo').checked,
+    news: document.getElementById('pref-news').checked,
+  };
+  try {
+    await fetch(`${window._firebase_url}/users/${user.uid}/prefs.json`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(prefs)
+    });
+    const msg = document.getElementById('prefs-save-msg');
+    msg.style.display = 'inline';
+    setTimeout(() => msg.style.display = 'none', 3000);
+  } catch(e){}
+}
+</script>
+
+<script>
+let isDark = true;
+function toggleTheme() {
+  isDark = !isDark;
+  document.body.classList.toggle('light', !isDark);
+  document.getElementById('theme-btn').textContent = isDark ? '🌙' : '☀️';
+}
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  btn.classList.add('active');
+}
+function switchRental(type, btn) {
+  document.querySelectorAll('.rental-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.rental-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('rental-'+type).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>

@@ -196,6 +196,15 @@
       </div>
     </div>
     <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">🌙</button>
+    <!-- User bar (shown after login) -->
+    <div id="user-bar" style="display:none;align-items:center;gap:.5rem">
+      <a href="profile.html" style="display:flex;align-items:center;gap:.5rem;background:var(--input-bg);border:1px solid var(--border);padding:.35rem .8rem .35rem .45rem;text-decoration:none;transition:border .2s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div id="user-avatar" style="width:26px;height:26px;background:var(--gold);color:#0a0a0a;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.75rem;flex-shrink:0">U</div>
+        <span id="user-name" style="font-size:.8rem;color:var(--text);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+      </a>
+      <button onclick="doLogout()" style="background:transparent;border:1px solid var(--border);color:var(--text2);padding:.35rem .75rem;font-family:'DM Sans',sans-serif;font-size:.78rem;cursor:pointer;white-space:nowrap;transition:all .2s" onmouseover="this.style.borderColor='#e74c3c';this.style.color='#e74c3c'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">Sign Out</button>
+    </div>
+    <!-- Sign In button (shown when logged out) -->
     <button class="nav-btn" onclick="document.getElementById('auth-screen').style.display='flex';showAuthTab('login')" id="nav-auth-btn">Sign In</button>
   </div>
 </nav>
@@ -743,8 +752,7 @@ window.doLogout = async function() {
   await signOut(auth);
 }
 
-// Auth ready
-</script>
+// Auth ready</script>
 
 <!-- PROMPTPAY QR MODAL -->
 <div id="qr-overlay" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);justify-content:center;align-items:center">
@@ -992,19 +1000,8 @@ async function saveBooking(paymentMethod, tokenId) {
   </div>
 </div>
 
-<!-- USER BAR in NAV (inject via JS) -->
+<!-- AUTH TABS SCRIPT -->
 <script>
-// Add user bar to nav
-const userBarHTML = `
-  <div id="user-bar" style="display:none;align-items:center;gap:.7rem;position:fixed;top:1rem;right:1rem;z-index:101">
-    <div style="display:flex;align-items:center;gap:.5rem;background:var(--input-bg);border:1px solid var(--border);padding:.4rem .9rem .4rem .5rem">
-      <div id="user-avatar" style="width:28px;height:28px;background:var(--gold);color:#0a0a0a;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem">U</div>
-      <span id="user-name" style="font-size:.82rem;color:var(--text);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
-    </div>
-    <button onclick="doLogout()" style="background:transparent;border:1px solid var(--border);color:var(--text2);padding:.4rem .8rem;font-family:'DM Sans',sans-serif;font-size:.78rem;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='#e74c3c';this.style.color='#e74c3c'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">Sign Out</button>
-  </div>`;
-document.body.insertAdjacentHTML('beforeend', userBarHTML);
-
 function showAuthTab(tab) {
   const isLogin = tab === 'login';
   document.getElementById('form-login').style.display = isLogin ? 'block' : 'none';
