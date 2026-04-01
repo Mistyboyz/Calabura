@@ -649,7 +649,7 @@ function openModal(id) {
   let days = 1;
   if (p && r) { const d=(new Date(r)-new Date(p))/86400000; if(d>0) days=d; }
   document.getElementById('modal-summary').innerHTML = `
-    <div class="summary-row"><span class="summary-label">${t.s_car}</span><span>${selectedCar.emoji} ${selectedCar.name}</span></div>
+    <div class="summary-row"><span class="summary-label">${t.s_car}</span><span>${selectedCar.name}</span></div>
     <div class="summary-row"><span class="summary-label">${t.s_price}</span><span>฿${selectedCar.price.toLocaleString()}</span></div>
     <div class="summary-row"><span class="summary-label">${t.s_days}</span><span>${days} ${t.day_unit}</span></div>
     <div class="summary-row"><span class="summary-label">${t.s_total}</span><span>฿${(selectedCar.price*days).toLocaleString()}</span></div>`;
@@ -1111,10 +1111,36 @@ async function processPayment() {
           err.textContent = response.message || 'Card error. Please check your details.';
           btn.disabled = false; togglePaymentFields(); return;
         }
-        // In production: send token to your server to create charge
-        // For demo: simulate successful payment
-        await saveBooking('credit_card', response.id);
-        btn.disabled = false; togglePaymentFields();
+        try {
+          // Send token to Netlify Function to charge via Omise
+          btn.textContent = '⏳ Processing payment...';
+          const p = document.getElementById('pickup-date').value;
+          const r = document.getElementById('return-date').value;
+          let days = 1;
+          if (p && r) { const d=(new Date(r)-new Date(p))/86400000; if(d>0) days=d; }
+          const total = selectedCar.price * days;
+
+          const chargeRes = await fetch('https://mic-electric-car.netlify.app/.netlify/functions/charge', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              token: response.id,
+              amount: total,
+              description: `Mic : Electric Car — ${selectedCar.name} (${days} days)`
+            })
+          });
+          const chargeData = await chargeRes.json();
+          if (!chargeData.success) {
+            err.textContent = chargeData.error || 'Payment failed. Please try again.';
+            btn.disabled = false; togglePaymentFields(); return;
+          }
+          // Payment successful — save booking
+          await saveBooking('credit_card', chargeData.chargeId);
+          btn.disabled = false; togglePaymentFields();
+        } catch(e) {
+          err.textContent = 'Payment error: ' + e.message;
+          btn.disabled = false; togglePaymentFields();
+        }
       });
     } catch(e) {
       err.textContent = 'Payment error: ' + e.message;
