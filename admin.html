@@ -149,7 +149,15 @@
   @keyframes spin { to{transform:rotate(360deg)} }
 
   /* LOGIN */
-  .login-screen { position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:999; }
+  .user-avatar { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.9rem; flex-shrink:0; }
+  .user-row { display:flex; align-items:center; gap:1rem; padding:1rem 1.5rem; border-bottom:1px solid rgba(201,168,76,.06); transition:background .15s; }
+  .user-row:hover { background:rgba(255,255,255,.02); }
+  .user-info { flex:1; }
+  .user-name-text { font-weight:600; font-size:.92rem; }
+  .user-email-text { font-size:.78rem; color:var(--text3); margin-top:.1rem; }
+  .user-provider { font-size:.7rem; padding:.2rem .6rem; border:1px solid var(--border); color:var(--text3); margin-left:.5rem; }
+  .user-booking-count { font-family:'AudiType',sans-serif; font-size:.85rem; color:var(--gold); font-weight:700; white-space:nowrap; }
+  .user-joined { font-size:.78rem; color:var(--text3); white-space:nowrap; }
   .login-box { background:var(--bg2); border:1px solid var(--border); padding:2.5rem; width:360px; }
   .login-box h2 { font-family:'Playfair Display',serif; font-size:1.6rem; margin-bottom:.4rem; }
   .login-box p { color:var(--text3); font-size:.85rem; margin-bottom:1.8rem; }
@@ -199,6 +207,7 @@
   </div>
   <nav class="sidebar-nav">
     <div class="nav-item active" onclick="showTab('bookings')"><span class="nav-icon">📋</span>All Bookings</div>
+    <div class="nav-item" onclick="showTab('users')"><span class="nav-icon">👥</span>Users</div>
     <div class="nav-item" onclick="showTab('cars')"><span class="nav-icon">🚗</span>All Cars</div>
     <div class="nav-item" onclick="window.open('index.html','_blank')"><span class="nav-icon">🌐</span>Customer Website</div>
     <div class="nav-item" onclick="doLogout()" style="margin-top:auto"><span class="nav-icon">🚪</span>Logout</div>
@@ -261,6 +270,33 @@
   <div id="tab-cars" style="display:none">
     <div class="page-header"><h2>All Cars</h2></div>
     <div class="stat-grid" id="cars-grid" style="grid-template-columns:repeat(3,1fr)"></div>
+  </div>
+
+  <!-- USERS TAB -->
+  <div id="tab-users" style="display:none">
+    <div class="page-header">
+      <div>
+        <h2>Users</h2>
+        <p style="font-size:.82rem;color:var(--text3);margin-top:.2rem">All registered users and their bookings</p>
+      </div>
+      <div class="header-actions">
+        <span class="last-updated" id="users-updated">—</span>
+        <button class="btn-refresh" onclick="loadUsers()">🔄 Refresh</button>
+      </div>
+    </div>
+    <div class="stat-grid" style="margin-bottom:2rem">
+      <div class="stat-card gold"><div class="stat-label">Total Users</div><div class="stat-value" id="u-total">0</div><div class="stat-sub">Registered accounts</div></div>
+      <div class="stat-card green"><div class="stat-label">Active Bookers</div><div class="stat-value" id="u-bookers">0</div><div class="stat-sub">Users with bookings</div></div>
+      <div class="stat-card blue"><div class="stat-label">Google Sign-in</div><div class="stat-value" id="u-google">0</div><div class="stat-sub">Via Google account</div></div>
+      <div class="stat-card orange"><div class="stat-label">Email Sign-in</div><div class="stat-value" id="u-email">0</div><div class="stat-sub">Via email/password</div></div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-head">
+        <h3>User List</h3>
+        <span class="table-count" id="users-count">0 users</span>
+      </div>
+      <div id="users-body"></div>
+    </div>
   </div>
 
 </div>
@@ -363,8 +399,69 @@ function showTab(tab) {
   document.querySelectorAll('.main > div[id^="tab-"]').forEach(el => el.style.display='none');
   document.getElementById('tab-'+tab).style.display = 'block';
   document.querySelectorAll('.nav-item').forEach((el,i) => {
-    el.classList.toggle('active', (tab==='bookings'&&i===0)||(tab==='cars'&&i===1));
+    el.classList.toggle('active',
+      (tab==='bookings'&&i===0)||(tab==='users'&&i===1)||(tab==='cars'&&i===2));
   });
+  if (tab === 'users') loadUsers();
+  if (tab === 'cars') renderCars();
+}
+
+// ============ LOAD USERS ============
+async function loadUsers() {
+  document.getElementById('users-body').innerHTML = '<div class="loading-state"><div class="spinner"></div><p style="margin-top:1rem">Loading users...</p></div>';
+  try {
+    // Get users from Firebase (stored when they register/login on the site)
+    const res = await fetch(`${FIREBASE_URL}/users.json`);
+    let users = {};
+    if (res.ok) { const d = await res.json(); if (d) users = d; }
+
+    // Merge with booking data to count bookings per user
+    const bookingEmails = {};
+    allBookings.forEach(b => {
+      if (b.email) {
+        bookingEmails[b.email] = (bookingEmails[b.email] || 0) + 1;
+      }
+    });
+
+    const userList = Object.values(users);
+
+    // Stats
+    document.getElementById('u-total').textContent = userList.length;
+    document.getElementById('u-bookers').textContent = Object.keys(bookingEmails).length;
+    document.getElementById('u-google').textContent = userList.filter(u => u.provider === 'google').length;
+    document.getElementById('u-email').textContent = userList.filter(u => u.provider === 'email').length;
+    document.getElementById('users-count').textContent = userList.length + ' users';
+    document.getElementById('users-updated').textContent = 'Updated: ' + new Date().toLocaleTimeString('en-US');
+
+    if (userList.length === 0) {
+      document.getElementById('users-body').innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><p>No registered users yet</p></div>';
+      return;
+    }
+
+    userList.sort((a,b) => new Date(b.createdAt||0) - new Date(a.createdAt||0));
+
+    document.getElementById('users-body').innerHTML = userList.map(u => {
+      const initials = (u.displayName || u.email || '?')[0].toUpperCase();
+      const bookingCount = bookingEmails[u.email] || 0;
+      const isGoogle = u.provider === 'google';
+      const colors = ['#c9a84c','#2ecc71','#3498db','#e74c3c','#9b59b6'];
+      const color = colors[u.email?.charCodeAt(0) % colors.length] || '#c9a84c';
+      return `
+        <div class="user-row">
+          <div class="user-avatar" style="background:${color}20;border:1px solid ${color};color:${color}">${initials}</div>
+          <div class="user-info">
+            <div class="user-name-text">${u.displayName || 'No name'}
+              <span class="user-provider">${isGoogle ? '🔵 Google' : '✉️ Email'}</span>
+            </div>
+            <div class="user-email-text">${u.email || '-'}</div>
+          </div>
+          <div class="user-booking-count">${bookingCount > 0 ? `📋 ${bookingCount} booking${bookingCount>1?'s':''}` : '<span style="color:var(--text3);font-family:\'DM Sans\',sans-serif;font-size:.78rem">No bookings</span>'}</div>
+          <div class="user-joined">${u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-US',{day:'2-digit',month:'short',year:'numeric'}) : '—'}</div>
+        </div>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('users-body').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>Could not load users</p></div>';
+  }
 }
 
 // ============ LOAD BOOKINGS ============
@@ -507,6 +604,8 @@ function openDetail(ref) {
     <div class="detail-field"><label>Phone</label><p>${b.phone}</p></div>
     <div class="detail-field"><label>Email</label><p>${b.email}</p></div>
     <div class="detail-field"><label>ID / Passport</label><p>${b.idCard||'-'}</p></div>
+    <div class="detail-field"><label>Pickup Location</label><p>${b.pickupLocation||'Not specified'}</p></div>
+    <div class="detail-field"><label>Return Location</label><p>${b.returnLocation||'Same as pickup'}</p></div>
     <div class="detail-field"><label>Pickup Date</label><p>${b.pickupDate}</p></div>
     <div class="detail-field"><label>Return Date</label><p>${b.returnDate} (${b.days} days)</p></div>
     <div class="detail-field"><label>Payment</label><p>${b.payment||'-'}</p></div>

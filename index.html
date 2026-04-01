@@ -80,6 +80,28 @@
   .stat-label { color:var(--text3); font-size:.85rem; margin-top:.3rem; }
 
   .booking-section { padding:5rem 3rem; background:var(--bg2); border-top:1px solid var(--border); border-bottom:1px solid var(--border); transition:background .3s; }
+
+  /* LOCATION SELECTOR */
+  .loc-selector { display:flex; align-items:center; gap:.8rem; background:var(--input-bg); border:1px solid var(--border); padding:.85rem 1rem; cursor:pointer; transition:all .2s; }
+  .loc-selector:hover { border-color:var(--gold); }
+  .loc-icon { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.75rem; font-weight:700; flex-shrink:0; }
+  .pickup-dot { background:rgba(46,204,113,.2); color:#2ecc71; border:1px solid rgba(46,204,113,.4); }
+  .return-dot { background:rgba(231,76,60,.2); color:#e74c3c; border:1px solid rgba(231,76,60,.4); }
+  .loc-text { flex:1; min-width:0; }
+  .loc-name { font-size:.9rem; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .loc-sub { font-size:.75rem; color:var(--text3); margin-top:.1rem; }
+  .loc-arrow { color:var(--text3); font-size:1.2rem; flex-shrink:0; }
+
+  /* LOCATION LIST ITEMS */
+  .loc-item { display:flex; align-items:center; gap:1rem; padding:1rem 1.5rem; cursor:pointer; transition:background .15s; border-bottom:1px solid rgba(201,168,76,.05); }
+  .loc-item:hover { background:rgba(201,168,76,.06); }
+  .loc-item.selected { background:rgba(201,168,76,.1); }
+  .loc-item-icon { width:40px; height:40px; background:var(--bg3); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
+  .loc-item-info { flex:1; }
+  .loc-item-name { font-size:.9rem; font-weight:600; }
+  .loc-item-detail { font-size:.75rem; color:var(--text3); margin-top:.15rem; }
+  .loc-item-tag { font-size:.68rem; padding:.15rem .5rem; border:1px solid var(--border); color:var(--text3); margin-left:.4rem; }
+  .loc-category { padding:.6rem 1.5rem; font-size:.68rem; letter-spacing:.18em; text-transform:uppercase; color:var(--gold); font-weight:600; background:rgba(201,168,76,.04); border-bottom:1px solid var(--border); }
   .section-title { font-family:'Playfair Display',serif; font-size:2rem; font-weight:700; margin-bottom:2rem; color:var(--text); }
   .section-title span { color:var(--gold); }
   .booking-form { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1.2rem; align-items:end; }
@@ -229,25 +251,47 @@
 </div>
 
 <section class="booking-section" id="booking">
-  <h2 class="section-title"><span data-i18n="search_pre">ค้นหา</span><span data-i18n="search_span">รถว่าง</span></h2>
+  <h2 class="section-title"><span data-i18n="search_pre">Reserve a</span> <span data-i18n="search_span" style="color:var(--gold)">Vehicle</span></h2>
+
+  <!-- LOCATION SELECTOR -->
+  <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:1rem;align-items:center;margin-bottom:1.5rem">
+    <!-- PICKUP -->
+    <div>
+      <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.5rem">📍 Pickup Location</label>
+      <div class="loc-selector" id="pickup-selector" onclick="openLocModal('pickup')">
+        <div class="loc-icon pickup-dot">P</div>
+        <div class="loc-text">
+          <div class="loc-name" id="pickup-name">Select pickup point</div>
+          <div class="loc-sub" id="pickup-sub">Click to choose location</div>
+        </div>
+        <div class="loc-arrow">›</div>
+      </div>
+    </div>
+    <!-- SWAP BUTTON -->
+    <button onclick="swapLocations()" title="Swap locations" style="background:var(--input-bg);border:1px solid var(--border);color:var(--gold);width:38px;height:38px;cursor:pointer;font-size:1.1rem;transition:all .2s;flex-shrink:0;margin-top:1.3rem" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">⇄</button>
+    <!-- RETURN -->
+    <div>
+      <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.5rem">🏁 Return Location</label>
+      <div class="loc-selector" id="return-selector" onclick="openLocModal('return')">
+        <div class="loc-icon return-dot">R</div>
+        <div class="loc-text">
+          <div class="loc-name" id="return-name">Same as pickup</div>
+          <div class="loc-sub" id="return-sub">Click to change</div>
+        </div>
+        <div class="loc-arrow">›</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATE / TIME / TYPE ROW -->
   <div class="booking-form">
     <div class="form-group">
-      <label data-i18n="label_pickup">📍 สถานที่รับรถ</label>
-      <select>
-        <option data-i18n="loc1">สนามบินสุวรรณภูมิ</option>
-        <option data-i18n="loc2">สนามบินดอนเมือง</option>
-        <option data-i18n="loc3">สยามพารากอน</option>
-        <option data-i18n="loc4">เซ็นทรัลเวิลด์</option>
-        <option data-i18n="loc5">ส่งถึงที่พัก</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label data-i18n="label_pickup_date">📅 วันที่รับรถ</label>
+      <label data-i18n="label_pickup_date">📅 Pickup Date</label>
       <input type="date" id="pickup-date">
     </div>
     <div class="form-group">
-      <label data-i18n="label_time">⏰ เวลารับรถ</label>
-      <select>
+      <label data-i18n="label_time">⏰ Pickup Time</label>
+      <select id="pickup-time">
         <option>08:00</option><option>09:00</option><option>10:00</option>
         <option>11:00</option><option>12:00</option><option>13:00</option>
         <option>14:00</option><option>15:00</option><option>16:00</option>
@@ -255,11 +299,20 @@
       </select>
     </div>
     <div class="form-group">
-      <label data-i18n="label_return">📅 วันที่คืนรถ</label>
+      <label data-i18n="label_return">📅 Return Date</label>
       <input type="date" id="return-date">
     </div>
     <div class="form-group">
-      <label data-i18n="label_type">🚗 ประเภทรถ</label>
+      <label>⏰ Return Time</label>
+      <select id="return-time">
+        <option>08:00</option><option>09:00</option><option>10:00</option>
+        <option>11:00</option><option>12:00</option><option>13:00</option>
+        <option>14:00</option><option>15:00</option><option>16:00</option>
+        <option>17:00</option><option>18:00</option><option>19:00</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label data-i18n="label_type">🚗 Car Type</label>
       <select id="sel-type" onchange="searchCars()">
         <option value="all" data-i18n="type_all">All Types</option>
         <option value="type_eco" data-i18n="type_eco">Eco Car</option>
@@ -270,10 +323,32 @@
       </select>
     </div>
     <div class="form-group" style="justify-content:flex-end">
-      <button class="btn-search" onclick="searchCars()" data-i18n="btn_search">🔍 ค้นหารถ</button>
+      <button class="btn-search" onclick="searchCars()" data-i18n="btn_search">🔍 Search</button>
     </div>
   </div>
 </section>
+
+<!-- LOCATION MODAL -->
+<div id="loc-modal" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);justify-content:center;align-items:center;padding:1rem">
+  <div style="background:var(--card);border:1px solid var(--border);max-width:600px;width:100%;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;animation:slideUp .25s ease">
+    <!-- Modal Header -->
+    <div style="padding:1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700" id="loc-modal-title">Select Location</h3>
+        <p style="font-size:.8rem;color:var(--text3);margin-top:.2rem" id="loc-modal-sub">Choose your pickup point</p>
+      </div>
+      <button onclick="closeLocModal()" style="background:none;border:1px solid var(--border);color:var(--text);width:34px;height:34px;cursor:pointer;font-size:1rem;transition:all .2s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">✕</button>
+    </div>
+    <!-- Search -->
+    <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--border)">
+      <input id="loc-search" type="text" placeholder="🔍 Search location..." oninput="filterLocations(this.value)"
+        style="width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:border .2s"
+        onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
+    </div>
+    <!-- Location List -->
+    <div style="overflow-y:auto;flex:1;padding:.5rem 0" id="loc-list"></div>
+  </div>
+</div>
 
 <section class="fleet-section" id="fleet">
   <h2 class="section-title"><span data-i18n="fleet_pre">เลือก</span><span data-i18n="fleet_span">รถของคุณ</span></h2>
@@ -636,6 +711,119 @@ function searchCars() {
   renderFleet();
 }
 
+// ============ LOCATION SYSTEM ============
+const LOCATIONS = [
+  { id:'suv', cat:'✈️ Airports', icon:'✈️', name:'Suvarnabhumi Airport', detail:'International Terminal, Level 1 · Open 24hrs', tags:['Free Shuttle','24/7'] },
+  { id:'dmk', cat:'✈️ Airports', icon:'✈️', name:'Don Mueang Airport', detail:'Domestic Terminal, Gate 5 · Open 24hrs', tags:['Free Shuttle','24/7'] },
+  { id:'siam', cat:'🏙️ City Centers', icon:'🏬', name:'Siam Paragon', detail:'B1 Parking Zone A · Mon–Sun 10:00–22:00', tags:['Mall','BTS'] },
+  { id:'cw', cat:'🏙️ City Centers', icon:'🏬', name:'CentralWorld', detail:'G Floor Entrance 1 · Mon–Sun 10:00–22:00', tags:['Mall','BTS'] },
+  { id:'asok', cat:'🏙️ City Centers', icon:'🏙️', name:'Asok / Sukhumvit', detail:'Terminal 21 B2 · Mon–Sun 09:00–21:00', tags:['BTS','MRT'] },
+  { id:'silom', cat:'🏙️ City Centers', icon:'🏙️', name:'Silom / Sathorn', detail:'Sathorn Road Branch · Mon–Sat 08:00–20:00', tags:['BTS'] },
+  { id:'hotel', cat:'🏨 Hotel Delivery', icon:'🏨', name:'Hotel Delivery — Bangkok', detail:'We deliver to your hotel lobby (2hr notice required)', tags:['Delivery','+฿200'] },
+  { id:'hotel-hua', cat:'🏨 Hotel Delivery', icon:'🏨', name:'Hotel Delivery — Hua Hin', detail:'Hua Hin area hotels (4hr notice required)', tags:['Delivery','+฿500'] },
+  { id:'pattaya', cat:'🌴 Destinations', icon:'🌴', name:'Pattaya City', detail:'North Pattaya Road, Gemini Hotel · Daily 08:00–20:00', tags:['Destination'] },
+  { id:'phuket', cat:'🌴 Destinations', icon:'✈️', name:'Phuket Airport', detail:'International Arrival Hall · Open 24hrs', tags:['Airport','24/7'] },
+  { id:'chiangmai', cat:'🌴 Destinations', icon:'✈️', name:'Chiang Mai Airport', detail:'Arrival Terminal · Open 24hrs', tags:['Airport','24/7'] },
+];
+
+let locModalTarget = 'pickup'; // 'pickup' or 'return'
+let selectedPickup = null;
+let selectedReturn = null;
+
+function openLocModal(target) {
+  locModalTarget = target;
+  document.getElementById('loc-modal-title').textContent = target === 'pickup' ? 'Select Pickup Location' : 'Select Return Location';
+  document.getElementById('loc-modal-sub').textContent = target === 'pickup' ? 'Where would you like to pick up your car?' : 'Where would you like to return your car?';
+  document.getElementById('loc-search').value = '';
+  renderLocList(LOCATIONS);
+  document.getElementById('loc-modal').style.display = 'flex';
+}
+
+function closeLocModal() {
+  document.getElementById('loc-modal').style.display = 'none';
+}
+
+function filterLocations(q) {
+  const filtered = q ? LOCATIONS.filter(l =>
+    l.name.toLowerCase().includes(q.toLowerCase()) ||
+    l.detail.toLowerCase().includes(q.toLowerCase()) ||
+    l.cat.toLowerCase().includes(q.toLowerCase())
+  ) : LOCATIONS;
+  renderLocList(filtered);
+}
+
+function renderLocList(list) {
+  const el = document.getElementById('loc-list');
+  if (!list.length) {
+    el.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text3)">No locations found</div>';
+    return;
+  }
+  // Group by category
+  const groups = {};
+  list.forEach(l => { if (!groups[l.cat]) groups[l.cat] = []; groups[l.cat].push(l); });
+
+  const selectedId = locModalTarget === 'pickup' ? selectedPickup?.id : selectedReturn?.id;
+  el.innerHTML = Object.entries(groups).map(([cat, items]) => `
+    <div class="loc-category">${cat}</div>
+    ${items.map(l => `
+      <div class="loc-item ${l.id === selectedId ? 'selected' : ''}" onclick="selectLocation('${l.id}')">
+        <div class="loc-item-icon">${l.icon}</div>
+        <div class="loc-item-info">
+          <div class="loc-item-name">${l.name} ${l.tags.map(t=>`<span class="loc-item-tag">${t}</span>`).join('')}</div>
+          <div class="loc-item-detail">${l.detail}</div>
+        </div>
+        ${l.id === selectedId ? '<div style="color:var(--gold);font-size:1.1rem">✓</div>' : ''}
+      </div>`).join('')}
+  `).join('');
+}
+
+function selectLocation(id) {
+  const loc = LOCATIONS.find(l => l.id === id);
+  if (!loc) return;
+  if (locModalTarget === 'pickup') {
+    selectedPickup = loc;
+    document.getElementById('pickup-name').textContent = loc.name;
+    document.getElementById('pickup-sub').textContent = loc.detail;
+    // Auto-set return to same if not chosen yet
+    if (!selectedReturn) {
+      selectedReturn = loc;
+      document.getElementById('return-name').textContent = loc.name;
+      document.getElementById('return-sub').textContent = 'Same as pickup · Click to change';
+    }
+  } else {
+    selectedReturn = loc;
+    document.getElementById('return-name').textContent = loc.name;
+    document.getElementById('return-sub').textContent = loc.detail;
+  }
+  closeLocModal();
+}
+
+function swapLocations() {
+  if (!selectedPickup && !selectedReturn) return;
+  const tmp = selectedPickup;
+  selectedPickup = selectedReturn;
+  selectedReturn = tmp;
+  if (selectedPickup) {
+    document.getElementById('pickup-name').textContent = selectedPickup.name;
+    document.getElementById('pickup-sub').textContent = selectedPickup.detail;
+  } else {
+    document.getElementById('pickup-name').textContent = 'Select pickup point';
+    document.getElementById('pickup-sub').textContent = 'Click to choose location';
+  }
+  if (selectedReturn) {
+    document.getElementById('return-name').textContent = selectedReturn.name;
+    document.getElementById('return-sub').textContent = selectedReturn.detail;
+  } else {
+    document.getElementById('return-name').textContent = 'Same as pickup';
+    document.getElementById('return-sub').textContent = 'Click to change';
+  }
+}
+
+// Close on outside click
+document.getElementById('loc-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeLocModal();
+});
+
 const t1=new Date(); t1.setDate(t1.getDate()+1);
 const t2=new Date(); t2.setDate(t2.getDate()+3);
 document.getElementById('pickup-date').value=t1.toISOString().split('T')[0];
@@ -915,6 +1103,8 @@ async function saveBooking(paymentMethod, tokenId) {
     carName: selectedCar.name,
     carModel: selectedCar.model,
     carImg: selectedCar.img,
+    pickupLocation: typeof selectedPickup !== 'undefined' && selectedPickup ? selectedPickup.name : 'Not specified',
+    returnLocation: typeof selectedReturn !== 'undefined' && selectedReturn ? selectedReturn.name : 'Same as pickup',
     pickupDate: p, returnDate: r,
     pricePerDay: selectedCar.price,
     total: selectedCar.price * days,
