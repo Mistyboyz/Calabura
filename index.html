@@ -614,11 +614,12 @@ async function loadBookedCars() {
     if (!res.ok) return;
     const data = await res.json();
     if (!data) { bookedCarIds = new Set(); return; }
-    // Cars that are booked = paid, confirmed, active (not completed/cancelled)
-    const activeStatuses = ['paid','pending','confirmed','active'];
+    // รถจะ NOT AVAILABLE เฉพาะ status: paid, pending, confirmed, active เท่านั้น
+    // completed และ cancelled = รถว่าง กลับมาให้คนอื่นจองได้
+    const blockedStatuses = ['paid','pending','confirmed','active'];
     bookedCarIds = new Set(
       Object.values(data)
-        .filter(b => activeStatuses.includes(b.status))
+        .filter(b => blockedStatuses.includes(b.status))
         .map(b => b.carId)
     );
   } catch(e) { bookedCarIds = new Set(); }

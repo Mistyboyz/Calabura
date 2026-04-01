@@ -599,12 +599,12 @@ function renderTable() {
 
 function statusLabel(s) {
   return {
-    pending: '🟠 Pending Payment',
-    paid: '⭐ Paid — Awaiting Confirm',
-    confirmed: '🟢 Confirmed',
-    active: '🚗 On Trip',
-    completed: '✅ Returned',
-    cancelled: '🔴 Cancelled'
+    pending:   '🟠 Pending Payment',
+    paid:      '⭐ Paid — Awaiting Confirm',
+    confirmed: '🟢 Confirmed — Ready for Pickup',
+    active:    '🚗 On Trip — Car Delivered',
+    completed: '🏁 Returned — Completed',
+    cancelled: '❌ Cancelled'
   }[s] || s;
 }
 function formatDate(iso) {
@@ -707,10 +707,16 @@ function renderDetailActions() {
   const b = currentBooking;
   document.getElementById('d-actions').innerHTML = `
     <span class="status ${b.status}" style="margin-right:.5rem">${statusLabel(b.status)}</span>
-    ${b.status==='pending'||b.status==='paid' ? `<button class="status-btn confirm" onclick="updateStatus('${b.ref}','confirmed')">✅ Confirm Booking</button>` : ''}
-    ${b.status==='confirmed' ? `<button class="status-btn pickup" onclick="updateStatus('${b.ref}','active')">🚗 ส่งมอบเรียบร้อยแล้ว</button>` : ''}
-    ${b.status==='active' ? `<button class="status-btn complete" onclick="updateStatus('${b.ref}','completed')">🏁 รับรถคืนเรียบร้อยแล้ว</button>` : ''}
-    ${b.status!=='cancelled'&&b.status!=='completed' ? `<button class="status-btn cancel" onclick="updateStatus('${b.ref}','cancelled')">❌ Cancel</button>` : ''}`;
+    ${b.status==='pending'||b.status==='paid'
+      ? `<button class="status-btn confirm" onclick="updateStatus('${b.ref}','confirmed')">✅ Confirm Booking</button>
+         <button class="status-btn cancel" onclick="updateStatus('${b.ref}','cancelled')">❌ Cancel Order</button>` : ''}
+    ${b.status==='confirmed'
+      ? `<button class="status-btn pickup" onclick="updateStatus('${b.ref}','active')">🚗 ส่งมอบเรียบร้อยแล้ว</button>
+         <button class="status-btn cancel" onclick="updateStatus('${b.ref}','cancelled')">❌ Cancel Order</button>` : ''}
+    ${b.status==='active'
+      ? `<button class="status-btn complete" onclick="updateStatus('${b.ref}','completed')">🏁 รับรถคืนเรียบร้อยแล้ว</button>` : ''}
+    ${b.status==='completed'||b.status==='cancelled'
+      ? `<span style="font-size:.82rem;color:var(--text3)">— No further actions —</span>` : ''}`;
 }
 
 function closeDetail() {
