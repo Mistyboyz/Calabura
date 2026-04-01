@@ -569,17 +569,21 @@ async function loadBookings(email) {
     const all = Object.values(data).filter(b => b.email === email);
     const today = new Date(); today.setHours(0,0,0,0);
 
+    // Admin ส่งมอบรถแล้ว (active) = Current เสมอ
+    // confirmed/paid + วันที่ถึงแล้ว = Current
     const current = all.filter(b => {
+      if (b.status === 'active') return true;
       const p = new Date(b.pickupDate); const r = new Date(b.returnDate);
-      return p <= today && r >= today && b.status !== 'cancelled';
+      return p <= today && r >= today && b.status !== 'cancelled' && b.status !== 'completed';
     });
     const upcoming = all.filter(b => {
+      if (b.status === 'active') return false;
       const p = new Date(b.pickupDate);
-      return p > today && b.status !== 'cancelled';
+      return p > today && b.status !== 'cancelled' && b.status !== 'completed';
     });
     const past = all.filter(b => {
       const r = new Date(b.returnDate);
-      return r < today || b.status === 'completed' || b.status === 'cancelled';
+      return b.status === 'completed' || b.status === 'cancelled' || (r < today && b.status !== 'active');
     });
 
     // Stats
@@ -634,7 +638,13 @@ function renderRentals(containerId, list, type) {
       </div>
       <div style="text-align:right">
         <div class="rental-price">฿${(b.total||0).toLocaleString()}</div>
-        <div class="rental-status ${type}">${type === 'current' ? '🟢 Active' : type === 'upcoming' ? '🔵 Upcoming' : b.status === 'cancelled' ? '🔴 Cancelled' : '✅ Completed'}</div>
+        <div class="rental-status ${type}">${
+          type === 'current'
+            ? (b.status === 'active' ? '🚗 On Trip — ส่งมอบแล้ว' : '🟢 Active')
+            : type === 'upcoming'
+            ? '🔵 Upcoming'
+            : b.status === 'cancelled' ? '🔴 Cancelled' : '✅ Returned — คืนรถแล้ว'
+        }</div>
       </div>
     </div>`).join('');
 }

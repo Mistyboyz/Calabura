@@ -104,8 +104,10 @@
   .status { display:inline-flex; align-items:center; gap:.35rem; padding:.28rem .7rem; font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; border:1px solid; transition:all .2s; }
   .status.pending { color:var(--orange); border-color:rgba(243,156,18,.3); background:rgba(243,156,18,.08); }
   .status.confirmed { color:var(--green); border-color:rgba(46,204,113,.3); background:rgba(46,204,113,.08); }
+  .status.active { color:#00bcd4; border-color:rgba(0,188,212,.3); background:rgba(0,188,212,.08); }
   .status.completed { color:var(--blue); border-color:rgba(52,152,219,.3); background:rgba(52,152,219,.08); }
   .status.cancelled { color:var(--red); border-color:rgba(231,76,60,.3); background:rgba(231,76,60,.08); }
+  .status.paid { color:var(--gold); border-color:rgba(201,168,76,.3); background:rgba(201,168,76,.08); }
   .status::before { content:''; width:6px; height:6px; border-radius:50%; background:currentColor; }
 
   /* ACTION BUTTONS */
@@ -137,6 +139,8 @@
   .status-btn { padding:.5rem 1rem; border:1px solid; font-family:'DM Sans',sans-serif; font-size:.8rem; font-weight:600; cursor:pointer; text-transform:uppercase; letter-spacing:.08em; transition:all .2s; background:transparent; }
   .status-btn.confirm { color:var(--green); border-color:var(--green); }
   .status-btn.confirm:hover { background:var(--green); color:#fff; }
+  .status-btn.pickup { color:#00bcd4; border-color:#00bcd4; }
+  .status-btn.pickup:hover { background:#00bcd4; color:#fff; }
   .status-btn.complete { color:var(--blue); border-color:var(--blue); }
   .status-btn.complete:hover { background:var(--blue); color:#fff; }
   .status-btn.cancel { color:var(--red); border-color:var(--red); }
@@ -241,16 +245,18 @@
 
     <div class="stat-grid">
       <div class="stat-card gold"><div class="stat-label">All Bookings</div><div class="stat-value" id="s-total">0</div><div class="stat-sub">All statuses</div></div>
-      <div class="stat-card green"><div class="stat-label">Pending</div><div class="stat-value" id="s-pending">0</div><div class="stat-sub">Action required</div></div>
+      <div class="stat-card green"><div class="stat-label">Paid — Awaiting Confirm</div><div class="stat-value" id="s-pending">0</div><div class="stat-sub">Action required</div></div>
       <div class="stat-card blue"><div class="stat-label">Confirmed</div><div class="stat-value" id="s-confirmed">0</div><div class="stat-sub">Ready for pickup</div></div>
       <div class="stat-card orange"><div class="stat-label">Total Revenue</div><div class="stat-value" id="s-revenue">฿0</div><div class="stat-sub">From all bookings</div></div>
     </div>
 
     <div class="filters">
       <button class="filter-btn active" onclick="filterStatus('all',this)">All</button>
-      <button class="filter-btn" onclick="filterStatus('pending',this)">🟡 Pending</button>
+      <button class="filter-btn" onclick="filterStatus('pending',this)">🟠 Pending</button>
+      <button class="filter-btn" onclick="filterStatus('paid',this)">⭐ Paid</button>
       <button class="filter-btn" onclick="filterStatus('confirmed',this)">🟢 Confirmed</button>
-      <button class="filter-btn" onclick="filterStatus('completed',this)">🔵 Completed</button>
+      <button class="filter-btn" onclick="filterStatus('active',this)">🚗 On Trip</button>
+      <button class="filter-btn" onclick="filterStatus('completed',this)">⚫ Returned</button>
       <button class="filter-btn" onclick="filterStatus('cancelled',this)">🔴 Cancelled</button>
       <input class="search-box" type="text" placeholder="🔍 Search name / Ref / Car..." oninput="searchBookings(this.value)">
     </div>
@@ -488,11 +494,12 @@ async function loadBookings() {
 // ============ STATS ============
 function updateStats() {
   const total = allBookings.length;
-  const pending = allBookings.filter(b=>b.status==='pending').length;
+  // Paid + Pending = needs action
+  const needsAction = allBookings.filter(b=>b.status==='paid'||b.status==='pending').length;
   const confirmed = allBookings.filter(b=>b.status==='confirmed').length;
   const revenue = allBookings.filter(b=>b.status!=='cancelled').reduce((s,b)=>s+(b.total||0),0);
   document.getElementById('s-total').textContent = total;
-  document.getElementById('s-pending').textContent = pending;
+  document.getElementById('s-pending').textContent = needsAction;
   document.getElementById('s-confirmed').textContent = confirmed;
   document.getElementById('s-revenue').textContent = '฿'+revenue.toLocaleString();
 }
@@ -534,7 +541,14 @@ function renderTable() {
 }
 
 function statusLabel(s) {
-  return {pending:'Pending',confirmed:'Confirmed',completed:'Completed',cancelled:'Cancelled'}[s]||s;
+  return {
+    pending: '🟠 Pending Payment',
+    paid: '⭐ Paid — Awaiting Confirm',
+    confirmed: '🟢 Confirmed',
+    active: '🚗 On Trip',
+    completed: '✅ Returned',
+    cancelled: '🔴 Cancelled'
+  }[s] || s;
 }
 function formatDate(iso) {
   if (!iso) return '—';
@@ -555,10 +569,10 @@ function searchBookings(q) {
 
 // ============ STATUS ACTIONS ============
 async function cycleStatus(ref) {
-  const order = ['pending','confirmed','completed','cancelled'];
+  const order = ['pending','confirmed','active','completed','cancelled'];
   const b = allBookings.find(x=>x.ref===ref);
   if (!b) return;
-  const next = order[(order.indexOf(b.status)+1)%order.length];
+  const next = order[(order.indexOf(b.status)+1) % order.length];
   await updateStatus(ref, next);
 }
 
@@ -621,8 +635,9 @@ function renderDetailActions() {
   const b = currentBooking;
   document.getElementById('d-actions').innerHTML = `
     <span class="status ${b.status}" style="margin-right:.5rem">${statusLabel(b.status)}</span>
-    ${b.status!=='confirmed'&&b.status!=='completed'&&b.status!=='cancelled' ? `<button class="status-btn confirm" onclick="updateStatus('${b.ref}','confirmed')">✅ Confirm</button>` : ''}
-    ${b.status==='confirmed' ? `<button class="status-btn complete" onclick="updateStatus('${b.ref}','completed')">🏁 Complete</button>` : ''}
+    ${b.status==='pending'||b.status==='paid' ? `<button class="status-btn confirm" onclick="updateStatus('${b.ref}','confirmed')">✅ Confirm Booking</button>` : ''}
+    ${b.status==='confirmed' ? `<button class="status-btn pickup" onclick="updateStatus('${b.ref}','active')">🚗 ส่งมอบเรียบร้อยแล้ว</button>` : ''}
+    ${b.status==='active' ? `<button class="status-btn complete" onclick="updateStatus('${b.ref}','completed')">🏁 รับรถคืนเรียบร้อยแล้ว</button>` : ''}
     ${b.status!=='cancelled'&&b.status!=='completed' ? `<button class="status-btn cancel" onclick="updateStatus('${b.ref}','cancelled')">❌ Cancel</button>` : ''}`;
 }
 
