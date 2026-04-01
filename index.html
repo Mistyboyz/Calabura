@@ -630,7 +630,7 @@ function renderFleet(filterKey) {
       <div class="car-features">${c.features.map(f=>`<span class="tag">${f}</span>`).join('')}</div>
       <div class="car-price">
         <div><span class="price-amount">฿${c.price.toLocaleString()}</span><div class="price-unit">${t.per_day}</div></div>
-        ${(typeof auth !== 'undefined' && auth.currentUser)
+        ${window.currentUser
           ? `<button class="btn-book" onclick="openModal(${c.id})">${t.car_book}</button>`
           : `<button class="btn-book btn-signin-prompt" onclick="document.getElementById('auth-screen').style.display='flex';showAuthTab('login')" style="background:var(--gold);color:#0a0a0a;border-color:var(--gold)">🔑 Sign In to Book</button>`
         }
@@ -828,6 +828,7 @@ const t1=new Date(); t1.setDate(t1.getDate()+1);
 const t2=new Date(); t2.setDate(t2.getDate()+3);
 document.getElementById('pickup-date').value=t1.toISOString().split('T')[0];
 document.getElementById('return-date').value=t2.toISOString().split('T')[0];
+window.currentUser = null; // default before Firebase loads
 applyLang('en');
 document.getElementById('modal').addEventListener('click',function(e){ if(e.target===this) closeModal(); });
 </script>
@@ -852,7 +853,11 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 // ===== AUTH STATE =====
+window.currentUser = null; // initialize first
+
 onAuthStateChanged(auth, user => {
+  window.currentUser = user || null;
+
   const navBtn = document.getElementById('nav-auth-btn');
   if (user) {
     document.getElementById('auth-screen').style.display = 'none';
@@ -860,16 +865,15 @@ onAuthStateChanged(auth, user => {
     document.getElementById('user-name').textContent = user.displayName || user.email;
     document.getElementById('user-avatar').textContent = (user.displayName || user.email)[0].toUpperCase();
     if (navBtn) navBtn.style.display = 'none';
-    // Save user profile to Firebase so Admin can see it
-    const provider = user.providerData[0]?.providerId === 'google.com' ? 'google' : 'email';
-    const safeKey = user.uid;
-    fetch(`${FIREBASE_URL}/users/${safeKey}.json`, {
+    // Save user profile to Firebase
+    const prov = user.providerData[0]?.providerId === 'google.com' ? 'google' : 'email';
+    fetch(`${FIREBASE_URL}/users/${user.uid}.json`, {
       method: 'PUT', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
         uid: user.uid,
         displayName: user.displayName || '',
         email: user.email,
-        provider,
+        provider: prov,
         createdAt: user.metadata.creationTime,
         lastLogin: user.metadata.lastSignInTime
       })
@@ -879,7 +883,8 @@ onAuthStateChanged(auth, user => {
     document.getElementById('user-bar').style.display = 'none';
     if (navBtn) navBtn.style.display = 'block';
   }
-  renderFleet();
+  // Re-render fleet so book buttons update correctly
+  if (typeof renderFleet === 'function') renderFleet();
 });
 
 // ===== REGISTER =====
@@ -943,17 +948,89 @@ window.doLogout = async function() {
 // Auth ready</script>
 
 <!-- PROMPTPAY QR MODAL -->
-<div id="qr-overlay" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);justify-content:center;align-items:center">
-  <div style="background:var(--card);border:1px solid var(--border);padding:2.5rem;max-width:380px;width:100%;text-align:center;animation:slideUp .3s ease">
-    <h3 style="font-family:'Playfair Display',serif;font-size:1.4rem;margin-bottom:.5rem;color:var(--text)">Scan to Pay</h3>
-    <p style="font-size:.85rem;color:var(--text3);margin-bottom:1.5rem">Scan QR Code with your banking app</p>
-    <div id="qr-image-wrap" style="background:#fff;padding:1rem;display:inline-block;margin-bottom:1rem">
-      <img id="qr-image" src="" alt="QR Code" style="width:200px;height:200px">
+<div id="qr-overlay" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);justify-content:center;align-items:center;padding:1rem">
+  <div style="background:var(--card);border:1px solid var(--border);padding:2rem;max-width:420px;width:100%;text-align:center;animation:slideUp .3s ease;max-height:90vh;overflow-y:auto">
+
+    <!-- STEP 1: QR Code -->
+    <div id="qr-step1">
+      <h3 style="font-family:'Playfair Display',serif;font-size:1.4rem;margin-bottom:.3rem;color:var(--text)">Scan to Pay</h3>
+      <p style="font-size:.82rem;color:var(--text3);margin-bottom:1.2rem">Open your banking app and scan the QR code below</p>
+      <div id="qr-image-wrap" style="background:#fff;padding:1rem;display:inline-block;margin-bottom:.8rem;border:3px solid var(--gold)">
+        <img id="qr-image" src="" alt="QR Code" style="width:180px;height:180px;display:block">
+      </div>
+      <div id="qr-amount" style="font-family:'AudiType',sans-serif;font-size:1.8rem;font-weight:900;color:var(--gold);margin-bottom:.3rem"></div>
+      <p style="font-size:.78rem;color:var(--text3);margin-bottom:.8rem">PromptPay · Mic Electric Car</p>
+      <div id="qr-timer" style="font-family:'AudiType',sans-serif;font-size:1rem;color:var(--orange);margin-bottom:1.2rem"></div>
+
+      <!-- Steps -->
+      <div style="background:rgba(201,168,76,.06);border:1px solid var(--border);padding:.8rem 1rem;text-align:left;margin-bottom:1.2rem">
+        <div style="font-size:.78rem;color:var(--text2);line-height:2">
+          1️⃣ Scan QR with banking app<br>
+          2️⃣ Confirm payment amount<br>
+          3️⃣ Take a screenshot of the slip<br>
+          4️⃣ Upload slip below to confirm
+        </div>
+      </div>
+
+      <button onclick="document.getElementById('qr-step1').style.display='none';document.getElementById('qr-step2').style.display='block'"
+        style="width:100%;background:var(--gold);color:#0a0a0a;border:none;padding:.85rem;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.9rem;cursor:pointer;margin-bottom:.6rem">
+        ✅ I've Paid — Upload Slip →
+      </button>
+      <button onclick="closeQR()" style="width:100%;background:transparent;border:1px solid var(--border);color:var(--text2);padding:.7rem;font-family:'DM Sans',sans-serif;cursor:pointer;font-size:.85rem">Cancel</button>
     </div>
-    <div id="qr-amount" style="font-family:'AudiType',sans-serif;font-size:1.8rem;font-weight:900;color:var(--gold);margin-bottom:.5rem"></div>
-    <p id="qr-status" style="font-size:.85rem;color:var(--text3);margin-bottom:1.5rem">⏳ Waiting for payment...</p>
-    <div id="qr-timer" style="font-family:'AudiType',sans-serif;font-size:1.2rem;color:var(--orange)"></div>
-    <button onclick="closeQR()" style="margin-top:1.5rem;background:transparent;border:1px solid var(--border);color:var(--text2);padding:.6rem 1.5rem;font-family:'DM Sans',sans-serif;cursor:pointer;font-size:.85rem">Cancel</button>
+
+    <!-- STEP 2: Upload Slip -->
+    <div id="qr-step2" style="display:none">
+      <h3 style="font-family:'Playfair Display',serif;font-size:1.4rem;margin-bottom:.3rem;color:var(--text)">Upload Payment Slip</h3>
+      <p style="font-size:.82rem;color:var(--text3);margin-bottom:1.5rem">Upload your payment screenshot to confirm booking</p>
+
+      <!-- Upload area -->
+      <div id="slip-drop-zone"
+        onclick="document.getElementById('slip-file-input').click()"
+        ondragover="event.preventDefault();this.style.borderColor='var(--gold)'"
+        ondragleave="this.style.borderColor='var(--border)'"
+        ondrop="handleSlipDrop(event)"
+        style="border:2px dashed var(--border);padding:2rem;cursor:pointer;transition:all .2s;margin-bottom:1rem;text-align:center">
+        <div id="slip-preview-wrap" style="display:none;margin-bottom:.8rem">
+          <img id="slip-preview" src="" style="max-width:100%;max-height:160px;object-fit:contain;border:1px solid var(--border)">
+        </div>
+        <div id="slip-placeholder">
+          <div style="font-size:2rem;margin-bottom:.5rem">📱</div>
+          <div style="font-size:.88rem;font-weight:600;color:var(--text)">Click or drag slip here</div>
+          <div style="font-size:.75rem;color:var(--text3);margin-top:.3rem">JPG, PNG up to 5MB</div>
+        </div>
+      </div>
+      <input type="file" id="slip-file-input" accept="image/*" style="display:none" onchange="previewSlip(this)">
+
+      <!-- Transaction ref -->
+      <div style="text-align:left;margin-bottom:1.2rem">
+        <label style="font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">Transaction Reference (optional)</label>
+        <input type="text" id="slip-ref" placeholder="e.g. 67030912345678"
+          style="width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:.7rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;transition:border .2s"
+          onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
+      </div>
+
+      <div id="slip-error" style="color:#e74c3c;font-size:.8rem;margin-bottom:.8rem;display:none"></div>
+
+      <button onclick="submitSlip()"
+        style="width:100%;background:var(--gold);color:#0a0a0a;border:none;padding:.85rem;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.9rem;cursor:pointer;margin-bottom:.6rem">
+        📤 Submit & Confirm Booking →
+      </button>
+      <button onclick="document.getElementById('qr-step2').style.display='none';document.getElementById('qr-step1').style.display='block'"
+        style="width:100%;background:transparent;border:1px solid var(--border);color:var(--text2);padding:.7rem;font-family:'DM Sans',sans-serif;cursor:pointer;font-size:.85rem">← Back to QR</button>
+    </div>
+
+    <!-- STEP 3: Success -->
+    <div id="qr-step3" style="display:none">
+      <div style="font-size:3rem;margin-bottom:1rem">✅</div>
+      <h3 style="font-family:'Playfair Display',serif;font-size:1.4rem;margin-bottom:.5rem;color:var(--text)">Booking Confirmed!</h3>
+      <p style="font-size:.85rem;color:var(--text3);margin-bottom:.5rem">Your slip has been submitted.</p>
+      <p style="font-size:.82rem;color:var(--text3);margin-bottom:1.5rem">Admin will verify and confirm your booking shortly.</p>
+      <div id="qr-booking-ref" style="font-family:'AudiType',sans-serif;font-size:1.1rem;color:var(--gold);border:1px solid var(--border);padding:.6rem 1.2rem;display:inline-block;margin-bottom:1.5rem"></div>
+      <br>
+      <button onclick="closeQR();closeModal()" style="background:var(--gold);color:#0a0a0a;border:none;padding:.8rem 2rem;font-family:'DM Sans',sans-serif;font-weight:700;cursor:pointer">Done</button>
+    </div>
+
   </div>
 </div>
 
@@ -1048,14 +1125,24 @@ async function processPayment() {
 
   // PromptPay QR
   if (method === 'promptpay') {
-    // Simulate QR generation (production needs server)
-    const total = selectedCar ? selectedCar.price * (parseInt(document.getElementById('b-days-hidden')?.value || 1)) : 0;
-    document.getElementById('qr-amount').textContent = '฿' + total.toLocaleString();
-    document.getElementById('qr-status').textContent = '⏳ Waiting for payment...';
-    // Use a placeholder QR (in production, generate real QR from Omise API via server)
-    document.getElementById('qr-image').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PromptPay:0952055824613:Amount:${total}`;
+    const p2 = document.getElementById('pickup-date').value;
+    const r2 = document.getElementById('return-date').value;
+    let days2 = 1;
+    if (p2 && r2) { const d=(new Date(r2)-new Date(p2))/86400000; if(d>0) days2=d; }
+    const total2 = selectedCar ? selectedCar.price * days2 : 0;
+    // Reset steps
+    document.getElementById('qr-step1').style.display = 'block';
+    document.getElementById('qr-step2').style.display = 'none';
+    document.getElementById('qr-step3').style.display = 'none';
+    document.getElementById('slip-preview-wrap').style.display = 'none';
+    document.getElementById('slip-placeholder').style.display = 'block';
+    document.getElementById('slip-ref').value = '';
+    document.getElementById('slip-error').style.display = 'none';
+    window._slipBase64 = null;
+    document.getElementById('qr-amount').textContent = '฿' + total2.toLocaleString();
+    document.getElementById('qr-image').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=00020101021229370016A000000677010111011300660899999995303764540${total2}5802TH5910MicElecCar6304ABCD`;
     document.getElementById('qr-overlay').style.display = 'flex';
-    startQRTimer(600); // 10 minutes
+    startQRTimer(600);
     btn.disabled = false; togglePaymentFields();
     return;
   }
@@ -1082,6 +1169,93 @@ function startQRTimer(seconds) {
 function closeQR() {
   clearInterval(qrTimerInterval);
   document.getElementById('qr-overlay').style.display = 'none';
+}
+
+function previewSlip(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    document.getElementById('slip-error').textContent = 'File too large. Max 5MB.';
+    document.getElementById('slip-error').style.display = 'block';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    window._slipBase64 = e.target.result;
+    document.getElementById('slip-preview').src = e.target.result;
+    document.getElementById('slip-preview-wrap').style.display = 'block';
+    document.getElementById('slip-placeholder').style.display = 'none';
+    document.getElementById('slip-error').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleSlipDrop(event) {
+  event.preventDefault();
+  document.getElementById('slip-drop-zone').style.borderColor = 'var(--border)';
+  const file = event.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) {
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    document.getElementById('slip-file-input').files = dt.files;
+    previewSlip(document.getElementById('slip-file-input'));
+  }
+}
+
+async function submitSlip() {
+  const errEl = document.getElementById('slip-error');
+  if (!window._slipBase64) {
+    errEl.textContent = 'Please upload your payment slip first.';
+    errEl.style.display = 'block';
+    return;
+  }
+  const submitBtn = event.target;
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Submitting...';
+  errEl.style.display = 'none';
+
+  const ref = 'DN' + Date.now().toString().slice(-6);
+  const p = document.getElementById('pickup-date').value;
+  const r = document.getElementById('return-date').value;
+  let days = 1;
+  if (p && r) { const d=(new Date(r)-new Date(p))/86400000; if(d>0) days=d; }
+
+  const booking = {
+    ref, days,
+    name: document.getElementById('b-name').value,
+    phone: document.getElementById('b-phone').value,
+    email: document.getElementById('b-email').value,
+    idCard: document.getElementById('b-id').value || '-',
+    payment: 'promptpay',
+    paymentSlip: window._slipBase64,
+    slipRef: document.getElementById('slip-ref').value || '-',
+    insurance: document.getElementById('b-insurance').value,
+    carId: selectedCar.id,
+    carName: selectedCar.name,
+    carModel: selectedCar.model,
+    carImg: selectedCar.img,
+    pickupLocation: typeof selectedPickup !== 'undefined' && selectedPickup ? selectedPickup.name : 'Not specified',
+    returnLocation: typeof selectedReturn !== 'undefined' && selectedReturn ? selectedReturn.name : 'Same as pickup',
+    pickupDate: p, returnDate: r,
+    pricePerDay: selectedCar.price,
+    total: selectedCar.price * days,
+    status: 'pending_verification',
+    createdAt: new Date().toISOString()
+  };
+
+  try {
+    await fetch(`${FIREBASE_URL_PAY}/bookings/${ref}.json`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(booking)
+    });
+  } catch(e) { console.warn('Firebase save failed:', e); }
+
+  clearInterval(qrTimerInterval);
+  document.getElementById('qr-step2').style.display = 'none';
+  document.getElementById('qr-step3').style.display = 'block';
+  document.getElementById('qr-booking-ref').textContent = '# ' + ref;
+  submitBtn.disabled = false;
+  submitBtn.textContent = '📤 Submit & Confirm Booking →';
 }
 
 async function saveBooking(paymentMethod, tokenId) {
