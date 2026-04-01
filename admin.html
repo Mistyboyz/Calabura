@@ -211,6 +211,7 @@
   </div>
   <nav class="sidebar-nav">
     <div class="nav-item active" onclick="showTab('bookings')"><span class="nav-icon">📋</span>All Bookings</div>
+    <div class="nav-item" onclick="showTab('history')"><span class="nav-icon">🕒</span>History</div>
     <div class="nav-item" onclick="showTab('users')"><span class="nav-icon">👥</span>Users</div>
     <div class="nav-item" onclick="showTab('cars')"><span class="nav-icon">🚗</span>All Cars</div>
     <div class="nav-item" onclick="window.open('index.html','_blank')"><span class="nav-icon">🌐</span>Customer Website</div>
@@ -278,7 +279,26 @@
     <div class="stat-grid" id="cars-grid" style="grid-template-columns:repeat(3,1fr)"></div>
   </div>
 
-  <!-- USERS TAB -->
+  <!-- HISTORY TAB -->
+  <div id="tab-history" style="display:none">
+    <div class="page-header">
+      <div>
+        <h2>Rental History</h2>
+        <p style="font-size:.82rem;color:var(--text3);margin-top:.2rem">All completed rentals</p>
+      </div>
+      <div class="header-actions">
+        <span class="last-updated" id="history-updated">—</span>
+        <button class="btn-refresh" onclick="loadHistory()">🔄 Refresh</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-head">
+        <h3>Completed Rentals</h3>
+        <span class="table-count" id="history-count">0 records</span>
+      </div>
+      <div id="history-body"><div class="loading-state"><div class="spinner"></div><p style="margin-top:1rem">Loading...</p></div></div>
+    </div>
+  </div>
   <div id="tab-users" style="display:none">
     <div class="page-header">
       <div>
@@ -406,10 +426,47 @@ function showTab(tab) {
   document.getElementById('tab-'+tab).style.display = 'block';
   document.querySelectorAll('.nav-item').forEach((el,i) => {
     el.classList.toggle('active',
-      (tab==='bookings'&&i===0)||(tab==='users'&&i===1)||(tab==='cars'&&i===2));
+      (tab==='bookings'&&i===0)||(tab==='history'&&i===1)||(tab==='users'&&i===2)||(tab==='cars'&&i===3));
   });
   if (tab === 'users') loadUsers();
   if (tab === 'cars') renderCars();
+  if (tab === 'history') loadHistory();
+}
+
+// ============ LOAD HISTORY ============
+async function loadHistory() {
+  document.getElementById('history-body').innerHTML = '<div class="loading-state"><div class="spinner"></div><p style="margin-top:1rem">Loading...</p></div>';
+  try {
+    const res = await fetch(`${FIREBASE_URL}/history.json`);
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    const list = data ? Object.values(data).sort((a,b)=>new Date(b.completedAt||b.createdAt)-new Date(a.completedAt||a.createdAt)) : [];
+    document.getElementById('history-count').textContent = list.length + ' records';
+    document.getElementById('history-updated').textContent = 'Updated: ' + new Date().toLocaleTimeString('en-US');
+    if (!list.length) {
+      document.getElementById('history-body').innerHTML = '<div class="empty-state"><div class="empty-icon">🕒</div><p>No completed rentals yet</p></div>';
+      return;
+    }
+    document.getElementById('history-body').innerHTML = `
+      <table>
+        <thead><tr>
+          <th>Ref</th><th>Car</th><th>Customer</th><th>Dates</th><th>Days</th><th>Total</th><th>Completed</th>
+        </tr></thead>
+        <tbody>${list.map(b=>`
+          <tr>
+            <td><span style="font-family:'AudiType',sans-serif;font-weight:700;color:var(--gold)">${b.ref}</span></td>
+            <td><div class="car-cell"><img src="${b.carImg||''}" class="car-thumb" onerror="this.style.display='none'" alt=""><div class="car-cell-info"><div class="car-cell-name">${b.carName}</div><div class="car-cell-model">${b.carModel||''}</div></div></div></td>
+            <td><div class="customer-name">${b.name}</div><div class="customer-contact">${b.email}</div></td>
+            <td class="date-cell">${b.pickupDate}<span class="date-arrow">→</span>${b.returnDate}</td>
+            <td><span class="days-badge">${b.days} days</span></td>
+            <td class="price-cell">฿${(b.total||0).toLocaleString()}</td>
+            <td style="font-size:.8rem;color:var(--text3)">${b.completedAt ? new Date(b.completedAt).toLocaleDateString('en-US',{day:'2-digit',month:'short',year:'numeric'}) : '—'}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`;
+  } catch(e) {
+    document.getElementById('history-body').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>Could not load history</p></div>';
+  }
 }
 
 // ============ LOAD USERS ============
@@ -582,7 +639,22 @@ async function updateStatus(ref, newStatus) {
   b.status = newStatus;
   if (!usingDemo) {
     try {
-      await fetch(`${FIREBASE_URL}/bookings/${ref}/status.json`, {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(newStatus)});
+      await fetch(`${FIREBASE_URL}/bookings/${ref}/status.json`, {
+        method:'PUT', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(newStatus)
+      });
+      // Save to history when car is returned
+      if (newStatus === 'completed') {
+        const historyEntry = {
+          ...b,
+          completedAt: new Date().toISOString(),
+          status: 'completed'
+        };
+        await fetch(`${FIREBASE_URL}/history/${ref}.json`, {
+          method:'PUT', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(historyEntry)
+        });
+      }
     } catch(e){}
   }
   updateStats();

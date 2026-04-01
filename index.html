@@ -605,8 +605,30 @@ const cars = [
 
 let selectedCar = null;
 
-function renderFleet(filterKey) {
+// Track booked car IDs
+let bookedCarIds = new Set();
+
+async function loadBookedCars() {
+  try {
+    const res = await fetch(`${FIREBASE_URL}/bookings.json`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data) { bookedCarIds = new Set(); return; }
+    // Cars that are booked = paid, confirmed, active (not completed/cancelled)
+    const activeStatuses = ['paid','pending','confirmed','active'];
+    bookedCarIds = new Set(
+      Object.values(data)
+        .filter(b => activeStatuses.includes(b.status))
+        .map(b => b.carId)
+    );
+  } catch(e) { bookedCarIds = new Set(); }
+}
+
+async function renderFleet(filterKey) {
   const t = T[lang];
+  // Load booked cars first
+  await loadBookedCars();
+
   const sel = filterKey || document.getElementById('sel-type')?.value || 'all';
   let filtered = cars;
   if (sel !== 'all') {
@@ -622,17 +644,23 @@ function renderFleet(filterKey) {
   }
   document.getElementById('fleet-grid').innerHTML = filtered.map(c => {
     const cat = c.catKey ? (t[c.catKey]||c.cat) : c.cat;
-    return `<div class="car-card">
-      <div class="car-img-wrap"><img src="${c.img}" alt="${c.name}" class="car-img" onerror="this.parentElement.innerHTML='<span class=car-emoji>🚗</span>'"></div>
+    const isBooked = bookedCarIds.has(c.id);
+    return `<div class="car-card" style="${isBooked ? 'opacity:.5;pointer-events:none;' : ''}">
+      <div class="car-img-wrap" style="position:relative">
+        <img src="${c.img}" alt="${c.name}" class="car-img" onerror="this.parentElement.innerHTML='<span class=car-emoji>🚗</span>'">
+        ${isBooked ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:#e74c3c;letter-spacing:.1em;text-transform:uppercase">⛔ Not Available</div>` : ''}
+      </div>
       <div class="car-category">${cat}</div>
       <div class="car-name">${c.name}</div>
       <div class="car-model">${c.model}</div>
       <div class="car-features">${c.features.map(f=>`<span class="tag">${f}</span>`).join('')}</div>
       <div class="car-price">
         <div><span class="price-amount">฿${c.price.toLocaleString()}</span><div class="price-unit">${t.per_day}</div></div>
-        ${window.currentUser
-          ? `<button class="btn-book" onclick="openModal(${c.id})">${t.car_book}</button>`
-          : `<button class="btn-book btn-signin-prompt" onclick="document.getElementById('auth-screen').style.display='flex';showAuthTab('login')" style="background:var(--gold);color:#0a0a0a;border-color:var(--gold)">🔑 Sign In to Book</button>`
+        ${isBooked
+          ? `<button class="btn-book" disabled style="opacity:.5;cursor:not-allowed;background:transparent;color:var(--text3);border-color:var(--text3)">Unavailable</button>`
+          : window.currentUser
+            ? `<button class="btn-book" onclick="openModal(${c.id})">${t.car_book}</button>`
+            : `<button class="btn-book btn-signin-prompt" onclick="document.getElementById('auth-screen').style.display='flex';showAuthTab('login')" style="background:var(--gold);color:#0a0a0a;border-color:var(--gold)">🔑 Sign In to Book</button>`
         }
       </div>
     </div>`;
