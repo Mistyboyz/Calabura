@@ -275,8 +275,17 @@
 
   <!-- CARS TAB -->
   <div id="tab-cars" style="display:none">
-    <div class="page-header"><h2>All Cars</h2></div>
-    <div class="stat-grid" id="cars-grid" style="grid-template-columns:repeat(3,1fr)"></div>
+    <div class="page-header">
+      <div>
+        <h2>All Cars</h2>
+        <p style="font-size:.82rem;color:var(--text3);margin-top:.2rem">Manage your fleet — edit price, details, and images</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn-refresh" onclick="openAddCar()" style="background:var(--gold);color:#0a0a0a;border-color:var(--gold)">➕ Add Car</button>
+        <button class="btn-refresh" onclick="loadAdminCars()">🔄 Refresh</button>
+      </div>
+    </div>
+    <div id="cars-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem"></div>
   </div>
 
   <!-- HISTORY TAB -->
@@ -429,7 +438,7 @@ function showTab(tab) {
       (tab==='bookings'&&i===0)||(tab==='history'&&i===1)||(tab==='users'&&i===2)||(tab==='cars'&&i===3));
   });
   if (tab === 'users') loadUsers();
-  if (tab === 'cars') renderCars();
+  if (tab === 'cars') loadAdminCars();
   if (tab === 'history') loadHistory();
 }
 
@@ -751,5 +760,256 @@ function renderCars() {
 // Close modal on outside click
 document.getElementById('detail-overlay').addEventListener('click', function(e) { if(e.target===this) closeDetail(); });
 </script>
+
+<!-- CAR EDIT MODAL -->
+<div id="car-modal-overlay" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);justify-content:center;align-items:center;padding:1rem">
+  <div style="background:var(--bg2);border:1px solid var(--border);max-width:580px;width:100%;max-height:90vh;overflow-y:auto;padding:2rem;animation:slideUp .25s ease">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid var(--border)">
+      <h3 id="car-modal-title" style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700">Edit Car</h3>
+      <button onclick="closeCarModal()" style="background:none;border:1px solid var(--border);color:var(--text);width:32px;height:32px;cursor:pointer;font-size:1rem">✕</button>
+    </div>
+
+    <input type="hidden" id="car-edit-id">
+
+    <!-- Car Image Preview -->
+    <div style="margin-bottom:1.2rem;text-align:center">
+      <img id="car-preview-img" src="" alt="Car" style="width:100%;height:160px;object-fit:cover;border:1px solid var(--border);display:block" onerror="this.style.display='none'">
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <div class="form-group" style="grid-column:1/-1">
+        <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">🖼️ Car Image</label>
+        <!-- Upload from device -->
+        <div style="display:flex;gap:.6rem;margin-bottom:.6rem;align-items:center">
+          <input type="file" id="car-img-file" accept="image/*" onchange="previewAndUpload(this)" style="display:none">
+          <button type="button" onclick="document.getElementById('car-img-file').click()" style="background:var(--gold);color:#0a0a0a;border:none;padding:.55rem 1.1rem;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.82rem;cursor:pointer;white-space:nowrap">📁 Upload from Device</button>
+          <span style="color:var(--text3);font-size:.78rem">or paste URL below</span>
+          <span id="upload-status" style="font-size:.78rem;color:#2ecc71;display:none">✅ Uploaded!</span>
+          <span id="upload-loading" style="font-size:.78rem;color:var(--gold);display:none">⏳ Uploading...</span>
+        </div>
+        <input type="text" id="car-img" placeholder="https://res.cloudinary.com/..." oninput="document.getElementById('car-preview-img').src=this.value;document.getElementById('car-preview-img').style.display='block'"
+          style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.82rem;outline:none">
+      </div>
+      <div class="form-group">
+        <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">Car Name</label>
+        <input type="text" id="car-name" placeholder="Toyota Yaris" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
+      </div>
+      <div class="form-group">
+        <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">Model / Spec</label>
+        <input type="text" id="car-model" placeholder="2024 · Auto · Petrol" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
+      </div>
+      <div class="form-group">
+        <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">💰 Price / Day (฿)</label>
+        <input type="number" id="car-price" placeholder="800" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'AudiType',sans-serif;font-size:.95rem;font-weight:700;outline:none">
+      </div>
+      <div class="form-group">
+        <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">Category</label>
+        <select id="car-category" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;appearance:none">
+          <option value="type_eco">Eco Car</option>
+          <option value="type_sedan">Sedan</option>
+          <option value="type_lux">Luxury</option>
+          <option value="SUV">SUV</option>
+          <option value="Sports">Sports</option>
+          <option value="MPV">MPV</option>
+        </select>
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">Features (comma separated)</label>
+        <input type="text" id="car-features" placeholder="5 Seats, A/C, Bluetooth, Rear Cam" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
+      </div>
+    </div>
+
+    <div id="car-save-msg" style="color:#2ecc71;font-size:.82rem;margin-top:.8rem;display:none">✅ Saved successfully!</div>
+    <div style="display:flex;gap:.8rem;margin-top:1.2rem">
+      <button onclick="saveCar()" style="flex:1;background:var(--gold);color:#0a0a0a;border:none;padding:.85rem;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.9rem;cursor:pointer">💾 Save Changes</button>
+      <button onclick="closeCarModal()" style="background:transparent;border:1px solid var(--border);color:var(--text2);padding:.85rem 1.5rem;font-family:'DM Sans',sans-serif;font-size:.9rem;cursor:pointer">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============ CAR MANAGEMENT ============
+const FIREBASE_URL_CARS = 'https://calabura-ea686-default-rtdb.asia-southeast1.firebasedatabase.app';
+const BASE_IMG_ADMIN = 'https://mistyboyz.github.io/Calabura/';
+let adminCars = [];
+
+async function loadAdminCars() {
+  document.getElementById('cars-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text3)"><div class="spinner"></div><p style="margin-top:1rem">Loading cars...</p></div>';
+  try {
+    const res = await fetch(`${FIREBASE_URL_CARS}/cars.json`);
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    adminCars = data ? Object.values(data).sort((a,b)=>a.id-b.id) : [];
+  } catch(e) {
+    adminCars = [];
+  }
+  renderAdminCars();
+}
+
+function renderAdminCars() {
+  if (!adminCars.length) {
+    document.getElementById('cars-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text3)">No cars found. Click "Add Car" to add one.</div>';
+    return;
+  }
+  document.getElementById('cars-grid').innerHTML = adminCars.map(c => `
+    <div style="background:var(--bg2);border:1px solid var(--border);overflow:hidden;transition:border .2s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="position:relative">
+        <img src="${c.img||''}" style="width:100%;height:150px;object-fit:cover;display:block" onerror="this.style.display='none'" alt="${c.name}">
+        <div style="position:absolute;top:.5rem;right:.5rem;display:flex;gap:.3rem">
+          <button onclick="openEditCar(${c.id})" style="background:var(--gold);color:#0a0a0a;border:none;padding:.3rem .7rem;font-size:.75rem;font-weight:700;cursor:pointer">✏️ Edit</button>
+          <button onclick="deleteCar(${c.id},'${c.name}')" style="background:rgba(231,76,60,.9);color:#fff;border:none;padding:.3rem .6rem;font-size:.75rem;cursor:pointer">🗑</button>
+        </div>
+      </div>
+      <div style="padding:1rem">
+        <div style="font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.3rem">${c.catKey||c.cat||'—'}</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;margin-bottom:.2rem">${c.name}</div>
+        <div style="font-size:.78rem;color:var(--text3);margin-bottom:.8rem">${c.model||''}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);padding-top:.8rem">
+          <div style="font-family:'AudiType',sans-serif;font-size:1.3rem;font-weight:900;color:var(--gold)">฿${(c.price||0).toLocaleString()}</div>
+          <div style="font-size:.75rem;color:var(--text3)">/ day</div>
+        </div>
+        ${c.features ? `<div style="display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.6rem">${c.features.map(f=>`<span style="font-size:.68rem;padding:.15rem .5rem;background:rgba(201,168,76,.1);border:1px solid var(--border);color:var(--text3)">${f}</span>`).join('')}</div>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function openEditCar(id) {
+  const c = adminCars.find(x=>x.id===id);
+  if (!c) return;
+  document.getElementById('car-modal-title').textContent = '✏️ Edit Car — ' + c.name;
+  document.getElementById('car-edit-id').value = c.id;
+  document.getElementById('car-img').value = c.img||'';
+  document.getElementById('car-preview-img').src = c.img||'';
+  document.getElementById('car-preview-img').style.display = c.img ? 'block' : 'none';
+  document.getElementById('car-name').value = c.name||'';
+  document.getElementById('car-model').value = c.model||'';
+  document.getElementById('car-price').value = c.price||'';
+  document.getElementById('car-category').value = c.catKey||c.cat||'type_eco';
+  document.getElementById('car-features').value = (c.features||[]).join(', ');
+  document.getElementById('car-save-msg').style.display = 'none';
+  document.getElementById('car-modal-overlay').style.display = 'flex';
+}
+
+function openAddCar() {
+  document.getElementById('car-modal-title').textContent = '➕ Add New Car';
+  document.getElementById('car-edit-id').value = '';
+  document.getElementById('car-img').value = '';
+  document.getElementById('car-preview-img').src = '';
+  document.getElementById('car-preview-img').style.display = 'none';
+  document.getElementById('car-name').value = '';
+  document.getElementById('car-model').value = '';
+  document.getElementById('car-price').value = '';
+  document.getElementById('car-category').value = 'type_eco';
+  document.getElementById('car-features').value = '';
+  document.getElementById('car-save-msg').style.display = 'none';
+  document.getElementById('car-modal-overlay').style.display = 'flex';
+}
+
+async function saveCar() {
+  const id = document.getElementById('car-edit-id').value;
+  const name = document.getElementById('car-name').value.trim();
+  const price = parseInt(document.getElementById('car-price').value);
+  if (!name || !price) { alert('Please fill in Name and Price.'); return; }
+
+  const catVal = document.getElementById('car-category').value;
+  const isKey = ['type_eco','type_sedan','type_lux'].includes(catVal);
+  const features = document.getElementById('car-features').value.split(',').map(f=>f.trim()).filter(Boolean);
+
+  const carData = {
+    id: id ? parseInt(id) : Date.now(),
+    name,
+    model: document.getElementById('car-model').value.trim(),
+    price,
+    img: document.getElementById('car-img').value.trim(),
+    features,
+    ...(isKey ? {catKey: catVal} : {cat: catVal})
+  };
+
+  try {
+    await fetch(`${FIREBASE_URL_CARS}/cars/${carData.id}.json`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(carData)
+    });
+    // Update local list
+    const idx = adminCars.findIndex(x=>x.id===carData.id);
+    if (idx >= 0) adminCars[idx] = carData; else adminCars.push(carData);
+    renderAdminCars();
+    document.getElementById('car-save-msg').style.display = 'block';
+    setTimeout(() => {
+      document.getElementById('car-save-msg').style.display = 'none';
+      closeCarModal();
+    }, 1500);
+  } catch(e) { alert('Save failed: ' + e.message); }
+}
+
+async function deleteCar(id, name) {
+  if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+  try {
+    await fetch(`${FIREBASE_URL_CARS}/cars/${id}.json`, { method: 'DELETE' });
+    adminCars = adminCars.filter(x=>x.id!==id);
+    renderAdminCars();
+  } catch(e) { alert('Delete failed.'); }
+}
+
+async function previewAndUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  // Preview immediately
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('car-preview-img').src = e.target.result;
+    document.getElementById('car-preview-img').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+
+  // Upload to Cloudinary via Netlify Function
+  document.getElementById('upload-loading').style.display = 'inline';
+  document.getElementById('upload-status').style.display = 'none';
+
+  try {
+    const base64 = await fileToBase64(file);
+    const filename = file.name.replace(/\.[^/.]+$/, '').replace(/\s+/g, '_');
+
+    const res = await fetch('https://mic-electric-car.netlify.app/.netlify/functions/upload-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: base64, filename })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      document.getElementById('car-img').value = data.url;
+      document.getElementById('car-preview-img').src = data.url;
+      document.getElementById('upload-loading').style.display = 'none';
+      document.getElementById('upload-status').style.display = 'inline';
+      setTimeout(() => document.getElementById('upload-status').style.display = 'none', 3000);
+    } else {
+      throw new Error(data.error || 'Upload failed');
+    }
+  } catch(e) {
+    document.getElementById('upload-loading').style.display = 'none';
+    alert('Upload failed: ' + e.message);
+  }
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function closeCarModal() {
+  document.getElementById('car-modal-overlay').style.display = 'none';
+}
+
+document.getElementById('car-modal-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeCarModal();
+});
+</script>
 </body>
+</html>
 </html>
