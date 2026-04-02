@@ -242,6 +242,7 @@
     <div class="nav-item" onclick="showTab('users')"><span class="nav-icon">👥</span>Users</div>
     <div class="nav-item" onclick="showTab('history')"><span class="nav-icon">🕒</span>History</div>
     <div class="nav-item" onclick="showTab('adjustments')"><span class="nav-icon">⚙️</span>Adjustments</div>
+    <div class="nav-item" onclick="showTab('maintenance')"><span class="nav-icon">🔧</span>Maintenance</div>
     <div class="nav-item" onclick="window.open('index.html','_blank')"><span class="nav-icon">🌐</span>Customer Website</div>
     <div class="nav-item" onclick="doLogout()" style="margin-top:auto"><span class="nav-icon">🚪</span>Logout</div>
   </nav>
@@ -338,8 +339,14 @@
     </div>
     <div class="table-wrap" style="padding:0">
       <!-- Day headers -->
-      <div style="display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--border)">
-        ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div style="padding:.7rem;text-align:center;font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600">${d}</div>`).join('')}
+      <div id="cal-headers" style="display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--border)">
+        <div style="padding:.7rem;text-align:center;font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600">Sun</div>
+        <div style="padding:.7rem;text-align:center;font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600">Mon</div>
+        <div style="padding:.7rem;text-align:center;font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600">Tue</div>
+        <div style="padding:.7rem;text-align:center;font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600">Wed</div>
+        <div style="padding:.7rem;text-align:center;font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600">Thu</div>
+        <div style="padding:.7rem;text-align:center;font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600">Fri</div>
+        <div style="padding:.7rem;text-align:center;font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600">Sat</div>
       </div>
       <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr)"></div>
     </div>
@@ -519,6 +526,45 @@
       </div>
     </div>
   </div>
+
+  <!-- MAINTENANCE TAB -->
+  <div id="tab-maintenance" style="display:none">
+    <div class="page-header">
+      <div><h2>🔧 Maintenance</h2><p style="font-size:.82rem;color:var(--text3);margin-top:.2rem">Manage car maintenance status</p></div>
+      <button class="btn-refresh" onclick="loadMaintenance()">🔄 Refresh</button>
+    </div>
+    <div class="stat-grid" style="margin-bottom:1.5rem">
+      <div class="stat-card orange"><div class="stat-label">Under Maintenance</div><div class="stat-value" id="m-count">0</div><div class="stat-sub">Cars unavailable</div></div>
+      <div class="stat-card green"><div class="stat-label">Available Fleet</div><div class="stat-value" id="m-available">0</div><div class="stat-sub">Ready to rent</div></div>
+    </div>
+    <div class="table-wrap" style="margin-bottom:1.2rem">
+      <div class="table-head"><h3>Set Car Status</h3></div>
+      <div style="padding:1.5rem">
+        <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:1rem;align-items:end">
+          <div>
+            <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.5rem">Select Car</label>
+            <select id="m-car-select" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
+              <option value="">— Choose car —</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.5rem">Reason</label>
+            <input type="text" id="m-reason" placeholder="e.g. Engine service, Tire change..." style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
+          </div>
+          <button onclick="setMaintenance()" style="background:#f39c12;color:#0a0a0a;border:none;padding:.75rem 1.2rem;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.85rem;cursor:pointer;white-space:nowrap">🔧 Set Maintenance</button>
+        </div>
+        <div style="margin-top:1rem">
+          <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.5rem">Expected Return Date (optional)</label>
+          <input type="date" id="m-return-date" style="background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;width:220px">
+        </div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-head"><h3>Cars Under Maintenance</h3><span class="table-count" id="m-list-count">0 cars</span></div>
+      <div id="m-list"><div class="empty-state"><div class="empty-icon">🔧</div><p>No cars under maintenance</p></div></div>
+    </div>
+  </div>
+
   <div id="tab-history" style="display:none">
     <div class="page-header">
       <div>
@@ -664,12 +710,13 @@ function showTab(tab) {
   document.querySelectorAll('.main > div[id^="tab-"]').forEach(el => el.style.display='none');
   document.getElementById('tab-'+tab).style.display = 'block';
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  const tabOrder = ['dashboard','bookings','calendar','cars','users','history','adjustments'];
+  const tabOrder = ['dashboard','bookings','calendar','cars','users','history','adjustments','maintenance'];
   const idx = tabOrder.indexOf(tab);
   document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i === idx));
   if (tab === 'dashboard') renderDashboard();
   if (tab === 'calendar') renderCalendar();
   if (tab === 'adjustments') loadAdjustments();
+  if (tab === 'maintenance') loadMaintenance();
   if (tab === 'users') loadUsers();
   if (tab === 'cars') loadAdminCars();
   if (tab === 'history') loadHistory();
@@ -1195,7 +1242,107 @@ function renderCars() {
     </div>`).join('');
 }
 
-// ============ ADJUSTMENTS ============
+// ============ MAINTENANCE ============
+async function loadMaintenance() {
+  // Load cars into select
+  try {
+    const res = await fetch(`${FIREBASE_URL}/cars.json`);
+    const data = res.ok ? await res.json() : null;
+    const carList = data ? Object.values(data) : [];
+    const sel = document.getElementById('m-car-select');
+    sel.innerHTML = '<option value="">— Choose car —</option>' +
+      carList.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+    // Load maintenance records
+    const mRes = await fetch(`${FIREBASE_URL}/maintenance.json`);
+    const mData = mRes.ok ? await mRes.json() : null;
+    const mList = mData ? Object.values(mData) : [];
+    const activeMaint = mList.filter(m => m.status === 'maintenance');
+
+    document.getElementById('m-count').textContent = activeMaint.length;
+    document.getElementById('m-available').textContent = Math.max(0, carList.length - activeMaint.length);
+    document.getElementById('m-list-count').textContent = activeMaint.length + ' cars';
+
+    if (!activeMaint.length) {
+      document.getElementById('m-list').innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><p>All cars are available</p></div>';
+      return;
+    }
+
+    document.getElementById('m-list').innerHTML = `
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="border-bottom:1px solid var(--border)">
+          <th style="font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;padding:.7rem 1rem;text-align:left">Car</th>
+          <th style="font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;padding:.7rem 1rem;text-align:left">Reason</th>
+          <th style="font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;padding:.7rem 1rem;text-align:left">Since</th>
+          <th style="font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;padding:.7rem 1rem;text-align:left">Est. Return</th>
+          <th style="font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;padding:.7rem 1rem;text-align:left">Action</th>
+        </tr></thead>
+        <tbody>
+          ${activeMaint.map(m=>`
+            <tr style="border-bottom:1px solid var(--border2)">
+              <td style="padding:.8rem 1rem">
+                <div style="font-size:.88rem;font-weight:600">${m.carName}</div>
+              </td>
+              <td style="padding:.8rem 1rem;font-size:.82rem;color:var(--text2)">${m.reason||'—'}</td>
+              <td style="padding:.8rem 1rem;font-size:.78rem;color:var(--text3)">${m.since ? new Date(m.since).toLocaleDateString('en-US',{day:'2-digit',month:'short',year:'numeric'}) : '—'}</td>
+              <td style="padding:.8rem 1rem;font-size:.78rem;color:var(--orange)">${m.returnDate||'—'}</td>
+              <td style="padding:.8rem 1rem">
+                <button onclick="clearMaintenance('${m.carId}')" style="background:transparent;border:1px solid #2ecc71;color:#2ecc71;padding:.35rem .8rem;font-family:'DM Sans',sans-serif;font-size:.78rem;cursor:pointer;transition:all .2s" onmouseover="this.style.background='#2ecc71';this.style.color='#000'" onmouseout="this.style.background='transparent';this.style.color='#2ecc71'">✅ Mark Available</button>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+  } catch(e) {
+    document.getElementById('m-list').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>Could not load maintenance data</p></div>';
+  }
+}
+
+async function setMaintenance() {
+  const carId = document.getElementById('m-car-select').value;
+  const reason = document.getElementById('m-reason').value.trim();
+  const returnDate = document.getElementById('m-return-date').value;
+  if (!carId) { alert('Please select a car.'); return; }
+  if (!reason) { alert('Please enter a reason.'); return; }
+
+  // Get car name
+  const sel = document.getElementById('m-car-select');
+  const carName = sel.options[sel.selectedIndex].text;
+
+  const entry = {
+    carId, carName, reason, returnDate,
+    status: 'maintenance',
+    since: new Date().toISOString()
+  };
+
+  try {
+    // Save maintenance record
+    await fetch(`${FIREBASE_URL}/maintenance/${carId}.json`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(entry)
+    });
+    // Update car status in Firebase
+    await fetch(`${FIREBASE_URL}/cars/${carId}/status.json`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify('maintenance')
+    });
+    document.getElementById('m-reason').value = '';
+    document.getElementById('m-return-date').value = '';
+    document.getElementById('m-car-select').value = '';
+    loadMaintenance();
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function clearMaintenance(carId) {
+  if (!confirm('Mark this car as available?')) return;
+  try {
+    await fetch(`${FIREBASE_URL}/maintenance/${carId}.json`, { method: 'DELETE' });
+    await fetch(`${FIREBASE_URL}/cars/${carId}/status.json`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify('available')
+    });
+    loadMaintenance();
+  } catch(e) { alert('Error: ' + e.message); }
+}
 let currentAdjType = '';
 let adjLog = [];
 
