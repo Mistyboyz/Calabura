@@ -116,7 +116,7 @@
 
   .fleet-section { padding:5rem 3rem; background:var(--bg); transition:background .3s; }
   .fleet-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:1.5rem; margin-top:2.5rem; }
-  .car-card { background:var(--card); border:1px solid var(--border); padding:1.8rem; transition:all .3s; cursor:pointer; position:relative; overflow:hidden; }
+  .car-card { background:var(--card); border:1px solid var(--border); padding:1.8rem; transition:all .3s; cursor:pointer; position:relative; overflow:hidden; display:flex; flex-direction:column; }
   .car-card::before { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:var(--gold); transform:scaleX(0); transform-origin:left; transition:transform .3s; }
   .car-card:hover { border-color:rgba(201,168,76,.5); transform:translateY(-4px); box-shadow:var(--shadow); }
   .car-card:hover::before { transform:scaleX(1); }
@@ -127,9 +127,9 @@
   .car-category { font-size:.7rem; letter-spacing:.25em; text-transform:uppercase; color:var(--gold); font-weight:600; margin-bottom:.4rem; }
   .car-name { font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:700; margin-bottom:.3rem; color:var(--text); }
   .car-model { color:var(--text3); font-size:.9rem; margin-bottom:1.2rem; }
-  .car-features { display:flex; gap:.8rem; flex-wrap:wrap; margin-bottom:1.5rem; }
+  .car-features { display:flex; gap:.8rem; flex-wrap:wrap; margin-bottom:1.5rem; min-height:3.5rem; align-content:flex-start; }
   .tag { font-size:.75rem; padding:.3rem .7rem; background:rgba(201,168,76,.1); border:1px solid var(--border); color:var(--text2); }
-  .car-price { display:flex; justify-content:space-between; align-items:flex-end; border-top:1px solid var(--border); padding-top:1.2rem; }
+  .car-price { display:flex; justify-content:space-between; align-items:flex-end; border-top:1px solid var(--border); padding-top:1.2rem; margin-top:auto; }
   .price-amount { font-family:'AudiType',serif; font-size:2rem; font-weight:900; color:var(--gold); }
   .price-unit { font-size:.8rem; color:var(--text3); font-family:'AudiType',serif; }
   .btn-book { background:transparent; color:var(--gold); border:1px solid var(--gold); padding:.5rem 1.2rem; font-family:'DM Sans',sans-serif; font-weight:600; font-size:.85rem; cursor:pointer; transition:all .2s; }
