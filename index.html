@@ -588,20 +588,54 @@ function toggleTheme() {
 const FIREBASE_URL = 'https://calabura-ea686-default-rtdb.asia-southeast1.firebasedatabase.app';
 
 const BASE_IMG = 'https://mistyboyz.github.io/Calabura/';
-const cars = [
-  {id:1,catKey:'type_eco',name:'Toyota Yaris',model:'2024 · Auto · Petrol',price:800,features:['5 Seats','A/C','Bluetooth','Rear Cam'],
-   img:BASE_IMG+'toyota-yaris.png'},
-  {id:2,catKey:'type_sedan',name:'Honda City',model:'2024 · Auto · Petrol',price:1100,features:['5 Seats','A/C','CarPlay','Park Sensor'],
-   img:BASE_IMG+'Honda-City.png'},
-  {id:3,catKey:'type_lux',name:'BMW 3 Series',model:'2024 · Auto · Petrol',price:3500,features:['5 Seats','Leather','HUD','Sport Mode'],
-   img:BASE_IMG+'BMW-3-Series.png'},
-  {id:4,cat:'SUV',name:'Honda CR-V',model:'2024 · Auto · Hybrid',price:1800,features:['7 Seats','4WD','Sunroof','CarPlay'],
-   img:BASE_IMG+'honda-cr-v.png'},
-  {id:5,cat:'Sports',name:'Ford Mustang GT',model:'2024 · Manual · V8 5.0L',price:5500,features:['4 Seats','V8 Engine','Sport Mode','Premium Sound'],
-   img:BASE_IMG+'Ford-mustang.png'},
-  {id:6,catKey:'type_lux',name:'Nissan GT-R',model:'2024 · Auto · Twin-Turbo V6',price:8000,features:['4 Seats','AWD','Launch Control','Brembo Brakes'],
-   img:BASE_IMG+'nissan-GTR.png'},
+
+// Default cars (used only if Firebase not configured yet)
+const DEFAULT_CARS = [
+  {id:1,catKey:'type_eco',name:'Toyota Yaris',model:'2024 · Auto · Petrol',price:800,features:['5 Seats','A/C','Bluetooth','Rear Cam'],img:BASE_IMG+'toyota-yaris.png'},
+  {id:2,catKey:'type_sedan',name:'Honda City',model:'2024 · Auto · Petrol',price:1100,features:['5 Seats','A/C','CarPlay','Park Sensor'],img:BASE_IMG+'Honda-City.png'},
+  {id:3,catKey:'type_lux',name:'BMW 3 Series',model:'2024 · Auto · Petrol',price:3500,features:['5 Seats','Leather','HUD','Sport Mode'],img:BASE_IMG+'BMW-3-Series.png'},
+  {id:4,cat:'SUV',name:'Honda CR-V',model:'2024 · Auto · Hybrid',price:1800,features:['7 Seats','4WD','Sunroof','CarPlay'],img:BASE_IMG+'honda-cr-v.png'},
+  {id:5,cat:'Sports',name:'Ford Mustang GT',model:'2024 · Manual · V8 5.0L',price:5500,features:['4 Seats','V8 Engine','Sport Mode','Premium Sound'],img:BASE_IMG+'Ford-mustang.png'},
+  {id:6,catKey:'type_lux',name:'Nissan GT-R',model:'2024 · Auto · Twin-Turbo V6',price:8000,features:['4 Seats','AWD','Launch Control','Brembo Brakes'],img:BASE_IMG+'nissan-GTR.png'},
 ];
+
+let cars = [...DEFAULT_CARS];
+
+async function loadCarsFromFirebase() {
+  try {
+    const res = await fetch(`${FIREBASE_URL}/cars.json`);
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    if (data && Object.keys(data).length > 0) {
+      cars = Object.values(data).sort((a,b) => {
+        const aId = parseInt(a.id) || 0;
+        const bId = parseInt(b.id) || 0;
+        if (aId > 1000000 && bId > 1000000) return (a.price||0) - (b.price||0);
+        return aId - bId;
+      });
+    } else {
+      // Firebase empty → upload default cars
+      await uploadDefaultCars();
+    }
+  } catch(e) {
+    cars = [...DEFAULT_CARS];
+  }
+  renderFleet();
+}
+
+async function uploadDefaultCars() {
+  try {
+    for (const car of DEFAULT_CARS) {
+      await fetch(`${FIREBASE_URL}/cars/${car.id}.json`, {
+        method: 'PUT', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(car)
+      });
+    }
+    cars = [...DEFAULT_CARS];
+  } catch(e) {
+    cars = [...DEFAULT_CARS];
+  }
+}
 
 let selectedCar = null;
 
@@ -875,8 +909,9 @@ const t1=new Date(); t1.setDate(t1.getDate()+1);
 const t2=new Date(); t2.setDate(t2.getDate()+3);
 document.getElementById('pickup-date').value=t1.toISOString().split('T')[0];
 document.getElementById('return-date').value=t2.toISOString().split('T')[0];
-window.currentUser = null; // default before Firebase loads
+window.currentUser = null;
 applyLang('en');
+loadCarsFromFirebase(); // Load cars from Firebase
 document.getElementById('modal').addEventListener('click',function(e){ if(e.target===this) closeModal(); });
 </script>
 
