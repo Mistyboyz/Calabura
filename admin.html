@@ -154,6 +154,28 @@
 
   /* LOGIN */
   .login-screen { position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:999; }
+  .login-box { background:var(--bg2); border:1px solid var(--border); padding:2.5rem; width:360px; }
+  .login-box h2 { font-family:'Playfair Display',serif; font-size:1.6rem; margin-bottom:.4rem; }
+  .login-box p { color:var(--text3); font-size:.85rem; margin-bottom:1.8rem; }
+  .login-field { margin-bottom:1.1rem; }
+  .login-field label { font-size:.7rem; letter-spacing:.2em; text-transform:uppercase; color:var(--gold); display:block; margin-bottom:.4rem; font-weight:600; }
+  .login-field input { width:100%; background:rgba(255,255,255,.04); border:1px solid var(--border); color:var(--text); padding:.8rem 1rem; font-family:'DM Sans',sans-serif; font-size:.95rem; outline:none; transition:border .2s; }
+  .login-field input:focus { border-color:var(--gold); }
+  .login-btn { width:100%; background:var(--gold); color:#0a0a0a; border:none; padding:.9rem; font-family:'DM Sans',sans-serif; font-weight:700; font-size:.95rem; cursor:pointer; margin-top:.5rem; transition:background .2s; }
+  .login-btn:hover { background:var(--gold-light); }
+  .login-error { color:var(--red); font-size:.82rem; margin-top:.6rem; display:none; }
+
+  /* CALENDAR */
+  .cal-day { border-right:1px solid var(--border2); border-bottom:1px solid var(--border2); padding:.5rem; min-height:90px; position:relative; transition:background .15s; }
+  .cal-day:hover { background:rgba(201,168,76,.03); }
+  .cal-day.today { background:rgba(201,168,76,.06); }
+  .cal-day.other-month { opacity:.35; }
+  .cal-day-num { font-size:.82rem; font-weight:600; color:var(--text2); margin-bottom:.3rem; }
+  .cal-day.today .cal-day-num { color:var(--gold); font-weight:900; }
+  .cal-event { font-size:.68rem; padding:.15rem .4rem; margin-bottom:.2rem; border-radius:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:600; cursor:pointer; }
+  .cal-event.pickup { background:rgba(46,204,113,.2); color:#2ecc71; border-left:2px solid #2ecc71; }
+  .cal-event.return { background:rgba(231,76,60,.2); color:#e74c3c; border-left:2px solid #e74c3c; }
+  .cal-event.active { background:rgba(201,168,76,.15); color:var(--gold); border-left:2px solid var(--gold); }
   .user-row { display:flex; align-items:center; gap:1rem; padding:1rem 1.5rem; border-bottom:1px solid rgba(201,168,76,.06); transition:background .15s; }
   .user-row:hover { background:rgba(255,255,255,.02); }
   .user-info { flex:1; }
@@ -210,10 +232,16 @@
     <p>Admin Panel</p>
   </div>
   <nav class="sidebar-nav">
-    <div class="nav-item active" onclick="showTab('bookings')"><span class="nav-icon">📋</span>All Bookings</div>
-    <div class="nav-item" onclick="showTab('history')"><span class="nav-icon">🕒</span>History</div>
-    <div class="nav-item" onclick="showTab('users')"><span class="nav-icon">👥</span>Users</div>
+    <div class="nav-item" onclick="showTab('dashboard')"><span class="nav-icon">📊</span>Dashboard</div>
+    <div class="nav-item active" onclick="showTab('bookings')" style="position:relative">
+      <span class="nav-icon">📋</span>Booking List
+      <span id="notify-badge" style="display:none;position:absolute;right:.8rem;top:50%;transform:translateY(-50%);background:#e74c3c;color:#fff;font-size:.65rem;font-weight:700;padding:.15rem .45rem;border-radius:999px;min-width:18px;text-align:center">0</span>
+    </div>
+    <div class="nav-item" onclick="showTab('calendar')"><span class="nav-icon">📅</span>Calendar</div>
     <div class="nav-item" onclick="showTab('cars')"><span class="nav-icon">🚗</span>All Cars</div>
+    <div class="nav-item" onclick="showTab('users')"><span class="nav-icon">👥</span>Users</div>
+    <div class="nav-item" onclick="showTab('history')"><span class="nav-icon">🕒</span>History</div>
+    <div class="nav-item" onclick="showTab('adjustments')"><span class="nav-icon">⚙️</span>Adjustments</div>
     <div class="nav-item" onclick="window.open('index.html','_blank')"><span class="nav-icon">🌐</span>Customer Website</div>
     <div class="nav-item" onclick="doLogout()" style="margin-top:auto"><span class="nav-icon">🚪</span>Logout</div>
   </nav>
@@ -231,8 +259,109 @@
     <small style="opacity:.7">Currently showing Demo data for preview</small></div>
   </div>
 
-  <!-- BOOKINGS TAB -->
+  <!-- DASHBOARD TAB -->
+  <div id="tab-dashboard" style="display:none">
+    <div class="page-header">
+      <div><h2>Dashboard</h2><p style="font-size:.82rem;color:var(--text3);margin-top:.2rem">Overview of your rental business</p></div>
+      <span class="last-updated" id="dash-updated">—</span>
+    </div>
+
+    <!-- Stats Grid 2x2 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:1.5rem;position:relative;overflow:hidden">
+        <div style="position:absolute;top:-10px;right:-10px;width:80px;height:80px;background:radial-gradient(circle,rgba(46,204,113,.15),transparent);border-radius:50%"></div>
+        <div style="font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);font-weight:600;margin-bottom:.6rem">Total Cars</div>
+        <div id="d-total-cars" style="font-family:'AudiType',sans-serif;font-size:2.8rem;font-weight:900;color:#2ecc71;line-height:1">0</div>
+        <div style="font-size:.78rem;color:var(--text3);margin-top:.4rem">in fleet</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:1.5rem;position:relative;overflow:hidden">
+        <div style="position:absolute;top:-10px;right:-10px;width:80px;height:80px;background:radial-gradient(circle,rgba(52,152,219,.15),transparent);border-radius:50%"></div>
+        <div style="font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);font-weight:600;margin-bottom:.6rem">Active Rentals</div>
+        <div id="d-active-rentals" style="font-family:'AudiType',sans-serif;font-size:2.8rem;font-weight:900;color:#3498db;line-height:1">0</div>
+        <div style="font-size:.78rem;color:var(--text3);margin-top:.4rem">currently rented</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:1.5rem;position:relative;overflow:hidden">
+        <div style="position:absolute;top:-10px;right:-10px;width:80px;height:80px;background:radial-gradient(circle,rgba(201,168,76,.15),transparent);border-radius:50%"></div>
+        <div style="font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);font-weight:600;margin-bottom:.6rem">Available</div>
+        <div id="d-available" style="font-family:'AudiType',sans-serif;font-size:2.8rem;font-weight:900;color:var(--gold);line-height:1">0</div>
+        <div style="font-size:.78rem;color:var(--text3);margin-top:.4rem">ready to rent</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:1.5rem;position:relative;overflow:hidden">
+        <div style="position:absolute;top:-10px;right:-10px;width:80px;height:80px;background:radial-gradient(circle,rgba(231,76,60,.15),transparent);border-radius:50%"></div>
+        <div style="font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);font-weight:600;margin-bottom:.6rem">Customers</div>
+        <div id="d-customers" style="font-family:'AudiType',sans-serif;font-size:2.8rem;font-weight:900;color:#e74c3c;line-height:1">0</div>
+        <div style="font-size:.78rem;color:var(--text3);margin-top:.4rem">registered</div>
+      </div>
+    </div>
+
+    <!-- Recent Bookings + Fleet Status -->
+    <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:1rem">
+      <!-- Recent Bookings -->
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:1.5rem">
+        <h3 style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;margin-bottom:1.2rem">Recent Bookings</h3>
+        <table style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border)">
+              <th style="font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;padding:.4rem .5rem;text-align:left">ID</th>
+              <th style="font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;padding:.4rem .5rem;text-align:left">Customer</th>
+              <th style="font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;padding:.4rem .5rem;text-align:left">Car</th>
+              <th style="font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;padding:.4rem .5rem;text-align:left">Period</th>
+              <th style="font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;padding:.4rem .5rem;text-align:left">Status</th>
+            </tr>
+          </thead>
+          <tbody id="d-recent-table"></tbody>
+        </table>
+      </div>
+
+      <!-- Fleet Status -->
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:1.5rem">
+        <h3 style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;margin-bottom:1.2rem">Fleet Status</h3>
+        <div id="d-fleet-status"></div>
+        <div style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1rem">
+          <div style="font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;margin-bottom:.6rem">Total Revenue</div>
+          <div id="d-total-rev" style="font-family:'AudiType',sans-serif;font-size:1.8rem;font-weight:900;color:var(--gold)">฿0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CALENDAR TAB -->
+  <div id="tab-calendar" style="display:none">
+    <div class="page-header">
+      <div><h2>Calendar View</h2><p style="font-size:.82rem;color:var(--text3);margin-top:.2rem">Booking schedule overview</p></div>
+      <div class="header-actions">
+        <button class="btn-refresh" onclick="prevMonth()" style="width:34px;padding:0">←</button>
+        <span id="cal-title" style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;min-width:140px;text-align:center"></span>
+        <button class="btn-refresh" onclick="nextMonth()" style="width:34px;padding:0">→</button>
+        <button class="btn-refresh" onclick="goToday()">Today</button>
+      </div>
+    </div>
+    <div class="table-wrap" style="padding:0">
+      <!-- Day headers -->
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--border)">
+        ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div style="padding:.7rem;text-align:center;font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600">${d}</div>`).join('')}
+      </div>
+      <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr)"></div>
+    </div>
+    <!-- Legend -->
+    <div style="display:flex;gap:1.5rem;margin-top:1rem;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:var(--text3)"><span style="width:12px;height:12px;background:#2ecc71;border-radius:2px;display:inline-block"></span>Pickup</div>
+      <div style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:var(--text3)"><span style="width:12px;height:12px;background:#e74c3c;border-radius:2px;display:inline-block"></span>Return</div>
+      <div style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:var(--text3)"><span style="width:12px;height:12px;background:rgba(201,168,76,.3);border-radius:2px;display:inline-block"></span>On Trip</div>
+    </div>
+  </div>
   <div id="tab-bookings">
+    <!-- Pending Alert Bar -->
+    <div id="pending-alert" style="display:none;background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);padding:.9rem 1.2rem;margin-bottom:1.2rem;align-items:center;justify-content:space-between;gap:1rem">
+      <div style="display:flex;align-items:center;gap:.7rem">
+        <span style="font-size:1.1rem">🔔</span>
+        <div>
+          <div style="font-size:.88rem;font-weight:600;color:#e74c3c" id="pending-alert-text">Bookings waiting for confirmation</div>
+          <div style="font-size:.75rem;color:var(--text3)">Please review and confirm or cancel these bookings</div>
+        </div>
+      </div>
+      <button onclick="filterStatus('paid',document.querySelectorAll('.filter-btn')[2])" style="background:#e74c3c;color:#fff;border:none;padding:.45rem 1rem;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">View Now →</button>
+    </div>
     <div class="page-header">
       <div>
         <h2>All Bookings</h2>
@@ -288,7 +417,108 @@
     <div id="cars-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem"></div>
   </div>
 
-  <!-- HISTORY TAB -->
+  <!-- ADJUSTMENTS TAB -->
+  <div id="tab-adjustments" style="display:none">
+    <div class="page-header">
+      <div><h2>Booking Adjustments</h2><p style="font-size:.82rem;color:var(--text3);margin-top:.2rem">Modify existing bookings</p></div>
+    </div>
+
+    <!-- Action Cards -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem">
+      <div onclick="openAdjustModal('early')" style="background:var(--bg2);border:1px solid var(--border);padding:2rem;text-align:center;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--gold)';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">
+        <div style="font-size:2rem;margin-bottom:.8rem">⏪</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;margin-bottom:.4rem">Early Return</div>
+        <div style="font-size:.78rem;color:var(--text3)">Customer returns car before the end date</div>
+      </div>
+      <div onclick="openAdjustModal('extend')" style="background:var(--bg2);border:1px solid var(--border);padding:2rem;text-align:center;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--gold)';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">
+        <div style="font-size:2rem;margin-bottom:.8rem">⏩</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;margin-bottom:.4rem">Extend Rental</div>
+        <div style="font-size:.78rem;color:var(--text3)">Extend the rental period with new pricing</div>
+      </div>
+      <div onclick="openAdjustModal('cancel')" style="background:var(--bg2);border:1px solid rgba(231,76,60,.3);padding:2rem;text-align:center;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='#e74c3c';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='rgba(231,76,60,.3)';this.style.transform='none'">
+        <div style="font-size:2rem;margin-bottom:.8rem">✕</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;margin-bottom:.4rem;color:#e74c3c">Cancel Booking</div>
+        <div style="font-size:.78rem;color:var(--text3)">Cancel a booking and process refund</div>
+      </div>
+    </div>
+
+    <!-- Recent Adjustments -->
+    <div class="table-wrap">
+      <div class="table-head"><h3>Recent Adjustments</h3><span class="table-count" id="adj-count">0 records</span></div>
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border)">
+            <th style="font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;padding:.7rem 1rem;text-align:left">Booking ID</th>
+            <th style="font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;padding:.7rem 1rem;text-align:left">Customer</th>
+            <th style="font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;padding:.7rem 1rem;text-align:left">Car</th>
+            <th style="font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;padding:.7rem 1rem;text-align:left">Adjustment</th>
+            <th style="font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;padding:.7rem 1rem;text-align:left">Date</th>
+            <th style="font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;padding:.7rem 1rem;text-align:left">Note</th>
+          </tr>
+        </thead>
+        <tbody id="adj-table-body">
+          <tr><td colspan="6" style="padding:2rem;text-align:center;color:var(--text3)">No adjustments yet</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ADJUSTMENT MODAL -->
+  <div id="adj-overlay" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);justify-content:center;align-items:center;padding:1rem">
+    <div style="background:var(--bg2);border:1px solid var(--border);max-width:500px;width:100%;padding:2rem;animation:slideUp .25s ease">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid var(--border)">
+        <h3 id="adj-modal-title" style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700"></h3>
+        <button onclick="closeAdjustModal()" style="background:none;border:1px solid var(--border);color:var(--text);width:32px;height:32px;cursor:pointer">✕</button>
+      </div>
+
+      <!-- Select Booking -->
+      <div style="margin-bottom:1rem">
+        <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">Select Booking</label>
+        <select id="adj-booking-select" onchange="fillAdjBookingInfo()" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
+          <option value="">— Choose booking —</option>
+        </select>
+      </div>
+
+      <!-- Booking Info -->
+      <div id="adj-booking-info" style="display:none;background:var(--bg3);border:1px solid var(--border);padding:1rem;margin-bottom:1rem;font-size:.82rem">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+          <div><span style="color:var(--text3)">Customer:</span> <span id="adj-cust-name"></span></div>
+          <div><span style="color:var(--text3)">Car:</span> <span id="adj-car-name"></span></div>
+          <div><span style="color:var(--text3)">Pickup:</span> <span id="adj-pickup"></span></div>
+          <div><span style="color:var(--text3)">Return:</span> <span id="adj-return"></span></div>
+          <div><span style="color:var(--text3)">Total:</span> <span id="adj-total" style="color:var(--gold);font-weight:700"></span></div>
+        </div>
+      </div>
+
+      <!-- Early Return fields -->
+      <div id="adj-early-fields" style="display:none">
+        <div style="margin-bottom:1rem">
+          <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">Actual Return Date</label>
+          <input type="date" id="adj-early-date" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
+        </div>
+      </div>
+
+      <!-- Extend Rental fields -->
+      <div id="adj-extend-fields" style="display:none">
+        <div style="margin-bottom:1rem">
+          <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">New Return Date</label>
+          <input type="date" id="adj-extend-date" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
+        </div>
+      </div>
+
+      <!-- Note -->
+      <div style="margin-bottom:1.2rem">
+        <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">Note (optional)</label>
+        <textarea id="adj-note" rows="2" placeholder="Reason for adjustment..." style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;resize:none"></textarea>
+      </div>
+
+      <div id="adj-error" style="color:#e74c3c;font-size:.82rem;margin-bottom:.8rem;display:none"></div>
+      <div style="display:flex;gap:.8rem">
+        <button id="adj-confirm-btn" onclick="confirmAdjustment()" style="flex:1;background:var(--gold);color:#0a0a0a;border:none;padding:.85rem;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.9rem;cursor:pointer">Confirm</button>
+        <button onclick="closeAdjustModal()" style="background:transparent;border:1px solid var(--border);color:var(--text2);padding:.85rem 1.2rem;font-family:'DM Sans',sans-serif;font-size:.9rem;cursor:pointer">Cancel</button>
+      </div>
+    </div>
+  </div>
   <div id="tab-history" style="display:none">
     <div class="page-header">
       <div>
@@ -433,14 +663,189 @@ function doLogout() {
 function showTab(tab) {
   document.querySelectorAll('.main > div[id^="tab-"]').forEach(el => el.style.display='none');
   document.getElementById('tab-'+tab).style.display = 'block';
-  document.querySelectorAll('.nav-item').forEach((el,i) => {
-    el.classList.toggle('active',
-      (tab==='bookings'&&i===0)||(tab==='history'&&i===1)||(tab==='users'&&i===2)||(tab==='cars'&&i===3));
-  });
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const tabOrder = ['dashboard','bookings','calendar','cars','users','history','adjustments'];
+  const idx = tabOrder.indexOf(tab);
+  document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i === idx));
+  if (tab === 'dashboard') renderDashboard();
+  if (tab === 'calendar') renderCalendar();
+  if (tab === 'adjustments') loadAdjustments();
   if (tab === 'users') loadUsers();
   if (tab === 'cars') loadAdminCars();
   if (tab === 'history') loadHistory();
 }
+
+// ============ DASHBOARD ============
+async function renderDashboard() {
+  document.getElementById('dash-updated').textContent = 'Updated: ' + new Date().toLocaleTimeString('en-US');
+
+  // Load cars count from Firebase
+  let totalCars = 0;
+  try {
+    const res = await fetch(`${FIREBASE_URL}/cars.json`);
+    if (res.ok) { const d = await res.json(); totalCars = d ? Object.keys(d).length : 0; }
+  } catch(e){}
+
+  // Load users count
+  let totalUsers = 0;
+  try {
+    const res = await fetch(`${FIREBASE_URL}/users.json`);
+    if (res.ok) { const d = await res.json(); totalUsers = d ? Object.keys(d).length : 0; }
+  } catch(e){}
+
+  const all = allBookings;
+  const activeBookings = all.filter(b => b.status === 'active');
+  const bookedCarIds = new Set(all.filter(b=>['paid','confirmed','active'].includes(b.status)).map(b=>b.carId));
+  const available = Math.max(0, totalCars - bookedCarIds.size);
+  const revenue = all.filter(b=>b.status!=='cancelled').reduce((s,b)=>s+(b.total||0),0);
+
+  document.getElementById('d-total-cars').textContent = totalCars;
+  document.getElementById('d-active-rentals').textContent = activeBookings.length;
+  document.getElementById('d-available').textContent = available;
+  document.getElementById('d-customers').textContent = totalUsers;
+  document.getElementById('d-total-rev').textContent = '฿' + revenue.toLocaleString();
+
+  // Recent bookings table
+  const recent = [...all].sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0)).slice(0,5);
+  const statusColors = { pending:'#f39c12', paid:'var(--gold)', confirmed:'#2ecc71', active:'#00bcd4', completed:'#3498db', cancelled:'#e74c3c' };
+  document.getElementById('d-recent-table').innerHTML = recent.length ? recent.map(b=>`
+    <tr style="border-bottom:1px solid var(--border2)">
+      <td style="padding:.65rem .5rem;font-family:'AudiType',sans-serif;font-size:.78rem;font-weight:700;color:var(--gold)">${b.ref}</td>
+      <td style="padding:.65rem .5rem;font-size:.82rem">${b.name}</td>
+      <td style="padding:.65rem .5rem;font-size:.82rem;color:var(--text2)">${b.carName}</td>
+      <td style="padding:.65rem .5rem;font-size:.75rem;color:var(--text3)">${b.pickupDate} – ${b.returnDate}</td>
+      <td style="padding:.65rem .5rem">
+        <span style="font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.2rem .6rem;border:1px solid ${statusColors[b.status]||'var(--border)'};color:${statusColors[b.status]||'var(--text3)'}">${b.status?.toUpperCase()}</span>
+      </td>
+    </tr>`).join('') : `<tr><td colspan="5" style="padding:2rem;text-align:center;color:var(--text3)">No bookings yet</td></tr>`;
+
+  // Fleet status bars
+  const carBookings = {};
+  all.forEach(b => {
+    if (!carBookings[b.carName]) carBookings[b.carName] = {total:0, active:0, available:true};
+    carBookings[b.carName].total++;
+    if (b.status === 'active') { carBookings[b.carName].active++; carBookings[b.carName].available = false; }
+    if (['paid','confirmed'].includes(b.status)) carBookings[b.carName].available = false;
+  });
+
+  const fleetItems = [
+    { label: 'Available', count: available, color: '#2ecc71' },
+    { label: 'Rented', count: activeBookings.length, color: '#3498db' },
+    { label: 'Pending Confirm', count: all.filter(b=>['paid','pending'].includes(b.status)).length, color: 'var(--gold)' },
+  ];
+
+  document.getElementById('d-fleet-status').innerHTML = fleetItems.map(item => `
+    <div style="margin-bottom:1rem">
+      <div style="display:flex;justify-content:space-between;margin-bottom:.3rem">
+        <span style="font-size:.82rem;color:var(--text2)">${item.label}</span>
+        <span style="font-family:'AudiType',sans-serif;font-weight:700;color:${item.color}">${item.count}</span>
+      </div>
+      <div style="height:4px;background:var(--bg3)">
+        <div style="height:100%;background:${item.color};width:${totalCars>0?Math.min(100,Math.round(item.count/totalCars*100)):0}%;transition:width .8s ease"></div>
+      </div>
+    </div>`).join('');
+}
+
+// ============ CALENDAR ============
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+
+function renderCalendar() {
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-title').textContent = `${months[calMonth]} ${calYear}`;
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  // Build event map — use local date parsing to avoid timezone issues
+  const events = {};
+  const addEvent = (dateStr, event) => {
+    if (!dateStr) return;
+    if (!events[dateStr]) events[dateStr] = [];
+    events[dateStr].push(event);
+  };
+
+  allBookings.forEach(b => {
+    if (b.status === 'cancelled') return;
+    const carLabel = b.carName || '—';
+    const customerName = b.name || '—';
+
+    // Pickup day
+    if (b.pickupDate) {
+      addEvent(b.pickupDate, {
+        type: 'pickup',
+        label: `🚗 ${carLabel}`,
+        detail: `Pickup · ${customerName} · #${b.ref}`
+      });
+    }
+
+    // Return day
+    if (b.returnDate) {
+      addEvent(b.returnDate, {
+        type: 'return',
+        label: `🏁 ${carLabel}`,
+        detail: `Return · ${customerName} · #${b.ref}`
+      });
+    }
+
+    // Days in between — show car on trip
+    if (b.pickupDate && b.returnDate) {
+      const [py,pm,pd] = b.pickupDate.split('-').map(Number);
+      const [ry,rm,rd] = b.returnDate.split('-').map(Number);
+      const start = new Date(py, pm-1, pd);
+      const end = new Date(ry, rm-1, rd);
+      const cur = new Date(start);
+      cur.setDate(cur.getDate() + 1);
+      while (cur < end) {
+        const key = `${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(cur.getDate()).padStart(2,'0')}`;
+        addEvent(key, {
+          type: 'active',
+          label: `🔄 ${carLabel}`,
+          detail: `On Trip · ${customerName}`
+        });
+        cur.setDate(cur.getDate() + 1);
+      }
+    }
+  });
+
+  // Render grid
+  let html = '';
+  const prevDays = new Date(calYear, calMonth, 0).getDate();
+  for (let i = firstDay - 1; i >= 0; i--) {
+    html += `<div class="cal-day other-month"><div class="cal-day-num">${prevDays-i}</div></div>`;
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = dateStr === todayStr;
+    const dayEvents = events[dateStr] || [];
+
+    // Sort: pickup first, then active, then return
+    dayEvents.sort((a,b) => {
+      const order = {pickup:0, active:1, return:2};
+      return (order[a.type]||0) - (order[b.type]||0);
+    });
+
+    html += `<div class="cal-day ${isToday?'today':''}">
+      <div class="cal-day-num">${d}</div>
+      ${dayEvents.slice(0,3).map(e=>`
+        <div class="cal-event ${e.type}" title="${e.detail||''}">${e.label}</div>
+      `).join('')}
+      ${dayEvents.length>3?`<div style="font-size:.65rem;color:var(--text3);padding:.1rem .3rem">+${dayEvents.length-3} more</div>`:''}
+    </div>`;
+  }
+
+  const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+  for (let d = 1; d <= totalCells - firstDay - daysInMonth; d++) {
+    html += `<div class="cal-day other-month"><div class="cal-day-num">${d}</div></div>`;
+  }
+  document.getElementById('cal-grid').innerHTML = html;
+}
+
+function prevMonth() { calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); }
+function nextMonth() { calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); }
+function goToday() { calYear=new Date().getFullYear(); calMonth=new Date().getMonth(); renderCalendar(); }
 
 // ============ LOAD HISTORY ============
 async function loadHistory() {
@@ -482,55 +887,75 @@ async function loadHistory() {
 async function loadUsers() {
   document.getElementById('users-body').innerHTML = '<div class="loading-state"><div class="spinner"></div><p style="margin-top:1rem">Loading users...</p></div>';
   try {
-    // Get users from Firebase (stored when they register/login on the site)
     const res = await fetch(`${FIREBASE_URL}/users.json`);
-    let users = {};
-    if (res.ok) { const d = await res.json(); if (d) users = d; }
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    const userList = data ? Object.values(data).sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0)) : [];
 
-    // Merge with booking data to count bookings per user
-    const bookingEmails = {};
-    allBookings.forEach(b => {
-      if (b.email) {
-        bookingEmails[b.email] = (bookingEmails[b.email] || 0) + 1;
-      }
-    });
-
-    const userList = Object.values(users);
+    // Booking count per email
+    const bookingCount = {};
+    allBookings.forEach(b => { if(b.email) bookingCount[b.email] = (bookingCount[b.email]||0)+1; });
 
     // Stats
     document.getElementById('u-total').textContent = userList.length;
-    document.getElementById('u-bookers').textContent = Object.keys(bookingEmails).length;
-    document.getElementById('u-google').textContent = userList.filter(u => u.provider === 'google').length;
-    document.getElementById('u-email').textContent = userList.filter(u => u.provider === 'email').length;
+    document.getElementById('u-bookers').textContent = Object.keys(bookingCount).length;
+    document.getElementById('u-google').textContent = userList.filter(u=>u.provider==='google').length;
+    document.getElementById('u-email').textContent = userList.filter(u=>u.provider==='email').length;
     document.getElementById('users-count').textContent = userList.length + ' users';
     document.getElementById('users-updated').textContent = 'Updated: ' + new Date().toLocaleTimeString('en-US');
 
-    if (userList.length === 0) {
+    if (!userList.length) {
       document.getElementById('users-body').innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><p>No registered users yet</p></div>';
       return;
     }
 
-    userList.sort((a,b) => new Date(b.createdAt||0) - new Date(a.createdAt||0));
-
-    document.getElementById('users-body').innerHTML = userList.map(u => {
-      const initials = (u.displayName || u.email || '?')[0].toUpperCase();
-      const bookingCount = bookingEmails[u.email] || 0;
-      const isGoogle = u.provider === 'google';
-      const colors = ['#c9a84c','#2ecc71','#3498db','#e74c3c','#9b59b6'];
-      const color = colors[u.email?.charCodeAt(0) % colors.length] || '#c9a84c';
-      return `
-        <div class="user-row">
-          <div class="user-avatar" style="background:${color}20;border:1px solid ${color};color:${color}">${initials}</div>
-          <div class="user-info">
-            <div class="user-name-text">${u.displayName || 'No name'}
-              <span class="user-provider">${isGoogle ? '🔵 Google' : '✉️ Email'}</span>
-            </div>
-            <div class="user-email-text">${u.email || '-'}</div>
-          </div>
-          <div class="user-booking-count">${bookingCount > 0 ? `📋 ${bookingCount} booking${bookingCount>1?'s':''}` : '<span style="color:var(--text3);font-family:\'DM Sans\',sans-serif;font-size:.78rem">No bookings</span>'}</div>
-          <div class="user-joined">${u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-US',{day:'2-digit',month:'short',year:'numeric'}) : '—'}</div>
-        </div>`;
-    }).join('');
+    document.getElementById('users-body').innerHTML = `
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border)">
+            <th style="font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;padding:.7rem 1rem;text-align:left">Name</th>
+            <th style="font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;padding:.7rem 1rem;text-align:left">ID Card</th>
+            <th style="font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;padding:.7rem 1rem;text-align:left">Mobile</th>
+            <th style="font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;padding:.7rem 1rem;text-align:left">License</th>
+            <th style="font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;padding:.7rem 1rem;text-align:left">Bookings</th>
+            <th style="font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;padding:.7rem 1rem;text-align:left">Provider</th>
+            <th style="font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;padding:.7rem 1rem;text-align:left">Joined</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${userList.map(u => {
+            const initials = (u.displayName||u.email||'?')[0].toUpperCase();
+            const colors = ['#c9a84c','#2ecc71','#3498db','#e74c3c','#9b59b6'];
+            const color = colors[(u.email||'').charCodeAt(0) % colors.length] || '#c9a84c';
+            const count = bookingCount[u.email] || 0;
+            const isVip = count >= 3;
+            return `<tr style="border-bottom:1px solid var(--border2);transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,.02)'" onmouseout="this.style.background='transparent'">
+              <td style="padding:.8rem 1rem">
+                <div style="display:flex;align-items:center;gap:.7rem">
+                  <div style="width:32px;height:32px;border-radius:50%;background:${color}20;border:1px solid ${color};color:${color};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;flex-shrink:0">${initials}</div>
+                  <div>
+                    <div style="font-size:.88rem;font-weight:600">${u.displayName||'—'}</div>
+                    <div style="font-size:.72rem;color:var(--text3)">${u.email||'—'}</div>
+                  </div>
+                </div>
+              </td>
+              <td style="padding:.8rem 1rem;font-size:.82rem;color:var(--text2);font-family:'DM Mono',monospace">${u.idCard||'—'}</td>
+              <td style="padding:.8rem 1rem;font-size:.82rem;color:var(--text2)">${u.phone||'—'}</td>
+              <td style="padding:.8rem 1rem;font-size:.82rem;color:var(--text2)">${u.license||'—'}</td>
+              <td style="padding:.8rem 1rem">
+                ${count > 0
+                  ? `<span style="font-family:'AudiType',sans-serif;font-size:.85rem;font-weight:700;color:var(--gold)">${count}</span>`
+                  : `<span style="font-size:.78rem;color:var(--text3)">—</span>`}
+                ${isVip ? `<span style="margin-left:.4rem;font-size:.65rem;font-weight:700;padding:.15rem .5rem;background:rgba(201,168,76,.15);border:1px solid var(--gold);color:var(--gold)">VIP</span>` : ''}
+              </td>
+              <td style="padding:.8rem 1rem">
+                <span style="font-size:.72rem;padding:.2rem .6rem;border:1px solid var(--border);color:var(--text3)">${u.provider==='google'?'🔵 Google':'✉️ Email'}</span>
+              </td>
+              <td style="padding:.8rem 1rem;font-size:.78rem;color:var(--text3)">${u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-US',{day:'2-digit',month:'short',year:'numeric'}) : '—'}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
   } catch(e) {
     document.getElementById('users-body').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>Could not load users</p></div>';
   }
@@ -560,7 +985,6 @@ async function loadBookings() {
 // ============ STATS ============
 function updateStats() {
   const total = allBookings.length;
-  // Paid + Pending = needs action
   const needsAction = allBookings.filter(b=>b.status==='paid'||b.status==='pending').length;
   const confirmed = allBookings.filter(b=>b.status==='confirmed').length;
   const revenue = allBookings.filter(b=>b.status!=='cancelled').reduce((s,b)=>s+(b.total||0),0);
@@ -568,6 +992,20 @@ function updateStats() {
   document.getElementById('s-pending').textContent = needsAction;
   document.getElementById('s-confirmed').textContent = confirmed;
   document.getElementById('s-revenue').textContent = '฿'+revenue.toLocaleString();
+
+  // Show/hide notification badge and alert
+  const badge = document.getElementById('notify-badge');
+  const alert = document.getElementById('pending-alert');
+  if (needsAction > 0) {
+    badge.textContent = needsAction;
+    badge.style.display = 'block';
+    alert.style.display = 'flex';
+    document.getElementById('pending-alert-text').textContent =
+      `${needsAction} booking${needsAction>1?'s':''} waiting for confirmation`;
+  } else {
+    badge.style.display = 'none';
+    alert.style.display = 'none';
+  }
 }
 
 // ============ RENDER TABLE ============
@@ -757,8 +1195,137 @@ function renderCars() {
     </div>`).join('');
 }
 
+// ============ ADJUSTMENTS ============
+let currentAdjType = '';
+let adjLog = [];
+
+async function loadAdjustments() {
+  try {
+    const res = await fetch(`${FIREBASE_URL}/adjustments.json`);
+    if (res.ok) {
+      const data = await res.json();
+      adjLog = data ? Object.values(data).sort((a,b)=>new Date(b.date)-new Date(a.date)) : [];
+    }
+  } catch(e) { adjLog = []; }
+  renderAdjTable();
+}
+
+function renderAdjTable() {
+  document.getElementById('adj-count').textContent = adjLog.length + ' records';
+  if (!adjLog.length) {
+    document.getElementById('adj-table-body').innerHTML = '<tr><td colspan="6" style="padding:2rem;text-align:center;color:var(--text3)">No adjustments yet</td></tr>';
+    return;
+  }
+  const typeColors = { early:'#3498db', extend:'#2ecc71', cancel:'#e74c3c' };
+  const typeLabels = { early:'⏪ Early Return', extend:'⏩ Extend Rental', cancel:'✕ Cancelled' };
+  document.getElementById('adj-table-body').innerHTML = adjLog.map(a=>`
+    <tr style="border-bottom:1px solid var(--border2)">
+      <td style="padding:.7rem 1rem;font-family:'AudiType',sans-serif;font-size:.8rem;font-weight:700;color:var(--gold)">${a.ref}</td>
+      <td style="padding:.7rem 1rem;font-size:.82rem">${a.customer}</td>
+      <td style="padding:.7rem 1rem;font-size:.82rem;color:var(--text2)">${a.car}</td>
+      <td style="padding:.7rem 1rem"><span style="font-size:.72rem;font-weight:700;padding:.2rem .6rem;border:1px solid ${typeColors[a.type]||'var(--border)'};color:${typeColors[a.type]||'var(--text3)'}">${typeLabels[a.type]||a.type}</span></td>
+      <td style="padding:.7rem 1rem;font-size:.78rem;color:var(--text3)">${a.date ? new Date(a.date).toLocaleDateString('en-US',{day:'2-digit',month:'short',year:'numeric'}) : '—'}</td>
+      <td style="padding:.7rem 1rem;font-size:.78rem;color:var(--text3)">${a.note||'—'}</td>
+    </tr>`).join('');
+}
+
+function openAdjustModal(type) {
+  currentAdjType = type;
+  const titles = { early:'⏪ Early Return', extend:'⏩ Extend Rental', cancel:'✕ Cancel Booking' };
+  document.getElementById('adj-modal-title').textContent = titles[type];
+  document.getElementById('adj-booking-info').style.display = 'none';
+  document.getElementById('adj-early-fields').style.display = type==='early' ? 'block' : 'none';
+  document.getElementById('adj-extend-fields').style.display = type==='extend' ? 'block' : 'none';
+  document.getElementById('adj-error').style.display = 'none';
+  document.getElementById('adj-note').value = '';
+
+  // Confirm button color
+  const btn = document.getElementById('adj-confirm-btn');
+  btn.style.background = type === 'cancel' ? '#e74c3c' : 'var(--gold)';
+  btn.style.color = '#fff';
+  btn.textContent = type === 'cancel' ? '✕ Cancel Booking' : type === 'early' ? '⏪ Confirm Early Return' : '⏩ Confirm Extension';
+
+  // Populate booking select — active/confirmed bookings
+  const eligible = allBookings.filter(b => {
+    if (type === 'cancel') return !['completed','cancelled'].includes(b.status);
+    return ['active','confirmed'].includes(b.status);
+  });
+  document.getElementById('adj-booking-select').innerHTML =
+    `<option value="">— Choose booking —</option>` +
+    eligible.map(b=>`<option value="${b.ref}">${b.ref} · ${b.carName} · ${b.name}</option>`).join('');
+
+  document.getElementById('adj-overlay').style.display = 'flex';
+}
+
+function fillAdjBookingInfo() {
+  const ref = document.getElementById('adj-booking-select').value;
+  if (!ref) { document.getElementById('adj-booking-info').style.display = 'none'; return; }
+  const b = allBookings.find(x=>x.ref===ref);
+  if (!b) return;
+  document.getElementById('adj-cust-name').textContent = b.name;
+  document.getElementById('adj-car-name').textContent = b.carName;
+  document.getElementById('adj-pickup').textContent = b.pickupDate;
+  document.getElementById('adj-return').textContent = b.returnDate;
+  document.getElementById('adj-total').textContent = '฿' + (b.total||0).toLocaleString();
+  document.getElementById('adj-booking-info').style.display = 'block';
+  // Set min date for early return
+  if (currentAdjType === 'early') document.getElementById('adj-early-date').max = b.returnDate;
+  if (currentAdjType === 'extend') document.getElementById('adj-extend-date').min = b.returnDate;
+}
+
+async function confirmAdjustment() {
+  const ref = document.getElementById('adj-booking-select').value;
+  const note = document.getElementById('adj-note').value;
+  const err = document.getElementById('adj-error');
+  err.style.display = 'none';
+
+  if (!ref) { err.textContent = 'Please select a booking.'; err.style.display = 'block'; return; }
+  const b = allBookings.find(x=>x.ref===ref);
+  if (!b) return;
+
+  try {
+    if (currentAdjType === 'cancel') {
+      await updateStatus(ref, 'cancelled');
+    } else if (currentAdjType === 'early') {
+      const newDate = document.getElementById('adj-early-date').value;
+      if (!newDate) { err.textContent = 'Please select actual return date.'; err.style.display = 'block'; return; }
+      await fetch(`${FIREBASE_URL}/bookings/${ref}/returnDate.json`, {
+        method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(newDate)
+      });
+      b.returnDate = newDate;
+    } else if (currentAdjType === 'extend') {
+      const newDate = document.getElementById('adj-extend-date').value;
+      if (!newDate) { err.textContent = 'Please select new return date.'; err.style.display = 'block'; return; }
+      await fetch(`${FIREBASE_URL}/bookings/${ref}/returnDate.json`, {
+        method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(newDate)
+      });
+      b.returnDate = newDate;
+    }
+
+    // Save adjustment log
+    const logEntry = {
+      ref, type: currentAdjType,
+      customer: b.name, car: b.carName,
+      date: new Date().toISOString(), note
+    };
+    await fetch(`${FIREBASE_URL}/adjustments/${ref}_${Date.now()}.json`, {
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(logEntry)
+    });
+
+    closeAdjustModal();
+    loadAdjustments();
+    loadBookings();
+  } catch(e) { err.textContent = 'Error: ' + e.message; err.style.display = 'block'; }
+}
+
+function closeAdjustModal() {
+  document.getElementById('adj-overlay').style.display = 'none';
+}
+
 // Close modal on outside click
 document.getElementById('detail-overlay').addEventListener('click', function(e) { if(e.target===this) closeDetail(); });
+document.getElementById('adj-overlay').addEventListener('click', function(e) { if(e.target===this) closeAdjustModal(); });
 </script>
 
 <!-- CAR EDIT MODAL -->
