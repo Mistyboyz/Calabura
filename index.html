@@ -614,27 +614,13 @@ async function loadCarsFromFirebase() {
         return aId - bId;
       });
     } else {
-      // Firebase empty → upload default cars
-      await uploadDefaultCars();
+      // Firebase empty → no cars, Admin must add via All Cars
+      cars = [];
     }
   } catch(e) {
-    cars = [...DEFAULT_CARS];
+    cars = [];
   }
   renderFleet();
-}
-
-async function uploadDefaultCars() {
-  try {
-    for (const car of DEFAULT_CARS) {
-      await fetch(`${FIREBASE_URL}/cars/${car.id}.json`, {
-        method: 'PUT', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify(car)
-      });
-    }
-    cars = [...DEFAULT_CARS];
-  } catch(e) {
-    cars = [...DEFAULT_CARS];
-  }
 }
 
 let selectedCar = null;
@@ -674,7 +660,9 @@ async function renderFleet(filterKey) {
     });
   }
   if (filtered.length === 0) {
-    document.getElementById('fleet-grid').innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text3);font-size:1.1rem">🚗 No cars found in this category</div>`;
+    document.getElementById('fleet-grid').innerHTML = cars.length === 0
+      ? `<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text3);font-size:1.1rem">🚗 No cars available at the moment. Please check back later.</div>`
+      : `<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text3);font-size:1.1rem">🚗 No cars found in this category</div>`;
     return;
   }
   document.getElementById('fleet-grid').innerHTML = filtered.map(c => {
