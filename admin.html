@@ -1579,9 +1579,9 @@ document.getElementById('adj-overlay').addEventListener('click', function(e) { i
             <option value="MPV">MPV</option>
           </select>
         </div>
-        <div>
-          <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">💰 Price / Day (฿)</label>
-          <input type="number" id="car-price" placeholder="800" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.7rem 1rem;font-family:'AudiType',sans-serif;font-size:.95rem;font-weight:700;outline:none">
+        <!-- Price kept hidden as fallback for cars with no package -->
+        <div style="display:none">
+          <input type="number" id="car-price" placeholder="800">
         </div>
         <div style="grid-column:1/-1">
           <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">Features (comma separated)</label>
@@ -1871,8 +1871,10 @@ function renderAdminCars() {
         <div style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;margin-bottom:.2rem">${c.name}</div>
         <div style="font-size:.78rem;color:var(--text3);margin-bottom:.8rem">${c.model||''}</div>
         <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);padding-top:.8rem">
-          <div style="font-family:'AudiType',sans-serif;font-size:1.3rem;font-weight:900;color:var(--gold)">฿${(c.price||0).toLocaleString()}</div>
-          <div style="font-size:.75rem;color:var(--text3)">/ day</div>
+          ${(()=>{
+            // Show bound packages instead of raw price
+            return `<div style="font-size:.78rem;color:var(--text3);font-style:italic">ดูราคาใน Packages tab</div>`;
+          })()}
         </div>
         ${c.features ? `<div style="display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.6rem">${c.features.map(f=>`<span style="font-size:.68rem;padding:.15rem .5rem;background:rgba(201,168,76,.1);border:1px solid var(--border);color:var(--text3)">${f}</span>`).join('')}</div>` : ''}
       </div>
@@ -2049,7 +2051,7 @@ function renderAdminCarsList() {
       </div></td>
       <td style="font-family:'AudiType',sans-serif;font-size:.85rem;color:var(--gold)">${c.plate||'—'}</td>
       <td style="font-size:.78rem;color:var(--text3)">${c.catKey||c.cat||'—'}</td>
-      <td style="font-family:'AudiType',sans-serif;font-weight:700;color:var(--gold)">฿${(c.price||0).toLocaleString()}</td>
+      <td style="font-size:.75rem;color:var(--text3);font-style:italic">Packages</td>
       <td style="font-size:.85rem">${c.hp ? c.hp+'hp' : '—'}</td>
       <td style="font-size:.85rem">${c.range ? c.range+'km' : '—'}</td>
       <td style="font-size:.75rem;color:${conditionColor};max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${c.condition||''}">${c.condition ? '⚠️ '+c.condition.substring(0,30)+(c.condition.length>30?'…':'') : '✅ Good'}</td>

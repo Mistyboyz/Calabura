@@ -393,14 +393,16 @@
 
       <!-- ===== STEP 1: PACKAGE ===== -->
       <div id="modal-step1">
+        <!-- Package Selector -->
         <div style="margin-bottom:1.2rem">
-          <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.5rem">Insurance</label>
-          <select id="b-insurance" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.8rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
-            <option value="full" data-i18n="ins1">Full Coverage (+฿300/day)</option>
-            <option value="basic" data-i18n="ins2">Basic (+฿150/day)</option>
-            <option value="none" data-i18n="ins3">No Extra Insurance</option>
-          </select>
+          <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.5rem">📦 Select Package</label>
+          <div id="pkg-selector-wrap" style="display:flex;flex-direction:column;gap:.5rem"></div>
+          <div id="pkg-none-msg" style="display:none;background:rgba(255,255,255,.04);border:1px solid var(--border);padding:.85rem 1rem;font-size:.82rem;color:var(--text3)">
+            ไม่มี package สำหรับรถคันนี้ — จะคิดราคา ฿<span id="pkg-fallback-price">0</span>/วัน
+          </div>
         </div>
+        <!-- Hidden insurance field (kept for compatibility) -->
+        <input type="hidden" id="b-insurance" value="none">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.2rem">
           <div>
             <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.5rem">Pickup Date</label>
@@ -952,6 +954,8 @@ const DEFAULT_CARS = [
 ];
 
 let cars = [...DEFAULT_CARS];
+let carPackages = {}; // { carId: [pkg, pkg, ...] }
+let allPackages = [];
 
 async function loadCarsFromFirebase() {
   try {
@@ -975,7 +979,33 @@ async function loadCarsFromFirebase() {
   renderFleet();
 }
 
+// Load packages + bindings from Firebase
+async function loadPackagesFromFirebase() {
+  try {
+    const [pkgRes, bindRes] = await Promise.all([
+      fetch(`${FIREBASE_URL}/packages.json`),
+      fetch(`${FIREBASE_URL}/pkg_bindings.json`)
+    ]);
+    const pkgData = pkgRes.ok ? await pkgRes.json() : null;
+    const bindData = bindRes.ok ? await bindRes.json() : null;
+    allPackages = pkgData ? Object.values(pkgData) : [];
+    // Build carId → packages map
+    carPackages = {};
+    if (bindData) {
+      Object.values(bindData).forEach(b => {
+        const pkg = allPackages.find(p => p.id === b.pkgId);
+        if (!pkg) return;
+        if (!carPackages[String(b.carId)]) carPackages[String(b.carId)] = [];
+        carPackages[String(b.carId)].push(pkg);
+      });
+    }
+  } catch(e) { allPackages = []; carPackages = {}; }
+  // Re-render after packages loaded so prices show correctly
+  renderFleet();
+}
+
 let selectedCar = null;
+let selectedPackage = null; // package user picks
 
 // Track booked and maintenance car IDs
 let bookedCarIds = new Set();
@@ -1068,7 +1098,17 @@ async function renderFleet(filterKey) {
       <div class="car-model">${c.model}</div>
       <div class="car-features">${c.features.map(f=>`<span class="tag">${f}</span>`).join('')}</div>
       <div class="car-price">
-        <div><span class="price-amount">฿${c.price.toLocaleString()}</span><div class="price-unit">${t.per_day}</div></div>
+        <div>
+          ${(()=>{
+            const pkgs = carPackages[String(c.id)];
+            if (pkgs && pkgs.length > 0) {
+              const minPkg = pkgs.reduce((a,b) => a.price < b.price ? a : b);
+              const durLabel = {daily:'/ day', weekly:'/ week', monthly:'/ month', custom:'/ package'}[minPkg.duration] || '/ package';
+              return `<span class="price-amount">฿${minPkg.price.toLocaleString()}</span><div class="price-unit">${durLabel}${pkgs.length>1?' <span style="font-size:.65rem;color:var(--gold)">+${pkgs.length-1} more</span>':''}</div>`;
+            }
+            return `<span class="price-amount">฿${c.price.toLocaleString()}</span><div class="price-unit">${t.per_day}</div>`;
+          })()}
+        </div>
         ${btnHTML}
       </div>
     </div>`;
@@ -1106,9 +1146,75 @@ function openModal(id) {
     }
   }
 
+  renderPackageSelector(id);
   updateStep1Summary();
   goStep(1);
   document.getElementById('modal').classList.add('open');
+}
+
+function renderPackageSelector(carId) {
+  const pkgs = carPackages[String(carId)] || [];
+  const wrap = document.getElementById('pkg-selector-wrap');
+  const noneMsg = document.getElementById('pkg-none-msg');
+  selectedPackage = null;
+
+  if (!pkgs.length) {
+    wrap.innerHTML = '';
+    wrap.style.display = 'none';
+    noneMsg.style.display = 'block';
+    document.getElementById('pkg-fallback-price').textContent = (selectedCar?.price||0).toLocaleString();
+    return;
+  }
+
+  wrap.style.display = 'flex';
+  noneMsg.style.display = 'none';
+
+  const durLabel = {daily:'/ วัน',weekly:'/ สัปดาห์',monthly:'/ เดือน',custom:'/ package'};
+  // Sort by price ascending
+  const sorted = [...pkgs].sort((a,b) => a.price - b.price);
+
+  wrap.innerHTML = sorted.map((p,i) => `
+    <div class="pkg-option ${i===0?'selected':''}" id="pkg-opt-${p.id}"
+      onclick="selectPackage('${p.id}')"
+      style="border:1px solid ${i===0?'var(--gold)':'var(--border)'};background:${i===0?'rgba(201,168,76,.08)':'rgba(255,255,255,.04)'};padding:.85rem 1rem;cursor:pointer;transition:all .2s;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:.8rem">
+      <div style="width:18px;height:18px;border-radius:50%;border:2px solid ${i===0?'var(--gold)':'var(--border)'};background:${i===0?'var(--gold)':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.6rem;color:#0a0a0a" id="pkg-radio-${p.id}">${i===0?'●':''}</div>
+      <div>
+        <div style="font-size:.9rem;font-weight:600;color:var(--text)">${p.code}</div>
+        <div style="font-size:.72rem;color:var(--text3);margin-top:.1rem">
+          ${p.desc||''}
+          ${p.insurance?`<span style="color:var(--gold)">· Insurance ฿${p.insurance}/day</span>`:''}
+          ${p.deposit?`<span style="color:var(--text3)">· Deposit ฿${p.deposit.toLocaleString()}</span>`:''}
+        </div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-family:'AudiType',sans-serif;font-size:1.1rem;font-weight:900;color:var(--gold)">฿${p.price.toLocaleString()}</div>
+        <div style="font-size:.65rem;color:var(--text3)">${durLabel[p.duration]||'/ package'}</div>
+      </div>
+    </div>`).join('');
+
+  // Auto-select first
+  selectPackage(sorted[0].id, false);
+}
+
+function selectPackage(pkgId, rerender=true) {
+  const pkgs = carPackages[String(selectedCar?.id)] || [];
+  selectedPackage = pkgs.find(p => p.id === pkgId) || null;
+
+  if (rerender) {
+    document.querySelectorAll('.pkg-option').forEach(el => {
+      const id = el.id.replace('pkg-opt-','');
+      const isSelected = id === pkgId;
+      el.style.border = `1px solid ${isSelected?'var(--gold)':'var(--border)'}`;
+      el.style.background = isSelected ? 'rgba(201,168,76,.08)' : 'rgba(255,255,255,.04)';
+      const radio = document.getElementById('pkg-radio-'+id);
+      if (radio) {
+        radio.style.background = isSelected ? 'var(--gold)' : 'transparent';
+        radio.style.borderColor = isSelected ? 'var(--gold)' : 'var(--border)';
+        radio.textContent = isSelected ? '●' : '';
+      }
+    });
+  }
+  updateStep1Summary();
 }
 
 function closeModal() {
@@ -1160,10 +1266,19 @@ function updateStep1Summary() {
   const r = document.getElementById('b-return-date').value;
   if (!p || !r) return;
   const days = Math.max(1, Math.round((new Date(r)-new Date(p))/86400000));
-  const ins = document.getElementById('b-insurance').value;
-  const insCost = ins==='full'?300*days : ins==='basic'?150*days : 0;
+  let rental, insCost;
+  if (selectedPackage) {
+    // Package pricing
+    if (selectedPackage.duration === 'daily') rental = selectedPackage.price * days;
+    else rental = selectedPackage.price; // weekly/monthly/custom = flat
+    insCost = (selectedPackage.insurance||0) * days;
+  } else {
+    // Fallback: car base price
+    rental = selectedCar.price * days;
+    insCost = 0;
+  }
   document.getElementById('s1-days').textContent = days;
-  document.getElementById('s1-rental').textContent = '฿'+(selectedCar.price*days).toLocaleString();
+  document.getElementById('s1-rental').textContent = '฿'+rental.toLocaleString();
   document.getElementById('s1-insurance-cost').textContent = insCost>0?'฿'+insCost.toLocaleString():'฿0';
 }
 
@@ -1171,17 +1286,25 @@ function renderBookingSummary() {
   const p = document.getElementById('b-pickup-date').value;
   const r = document.getElementById('b-return-date').value;
   const days = Math.max(1, Math.round((new Date(r)-new Date(p))/86400000));
-  const ins = document.getElementById('b-insurance').value;
-  const insCost = ins==='full'?300*days : ins==='basic'?150*days : 0;
-  const rental = selectedCar.price * days;
+  let rental, insCost, pkgLabel;
+  if (selectedPackage) {
+    rental = selectedPackage.duration === 'daily' ? selectedPackage.price * days : selectedPackage.price;
+    insCost = (selectedPackage.insurance||0) * days;
+    pkgLabel = `${selectedPackage.code} (${selectedPackage.duration})`;
+  } else {
+    rental = selectedCar.price * days;
+    insCost = 0;
+    pkgLabel = 'None (base rate)';
+  }
   const total = rental + insCost;
   const fn = document.getElementById('b-firstname').value;
   const sn = document.getElementById('b-surname').value;
   const rows = [
     ['Vehicle', selectedCar.name],
     ['Customer', `${fn} ${sn}`.trim()],
-    ['Insurance', ins==='full'?'Full Coverage (+฿'+(300*days).toLocaleString()+')':ins==='basic'?'Basic (+฿'+(150*days).toLocaleString()+')':'None'],
-    ['Period', `${p} → ${r}`],
+    ['Package', pkgLabel],
+    ['Insurance', insCost>0?`฿${insCost.toLocaleString()} (฿${selectedPackage?.insurance||0}/day)`:'—'],
+    ['Period', `${p} → ${r} (${days} days)`],
     ['Pickup', selectedPickup ? selectedPickup.name : '—'],
     ['Rental Fee', '฿'+rental.toLocaleString()],
     ['Insurance Fee', insCost>0?'฿'+insCost.toLocaleString():'—'],
@@ -1329,6 +1452,7 @@ document.getElementById('return-date').value=t2.toISOString().split('T')[0];
 window.currentUser = null;
 applyLang('en');
 loadCarsFromFirebase(); // Load cars from Firebase
+loadPackagesFromFirebase(); // Load packages
 document.getElementById('modal').addEventListener('click',function(e){ if(e.target===this) closeModal(); });
 </script>
 
@@ -1618,9 +1742,15 @@ async function processPayment() {
           const r = document.getElementById('b-return-date').value;
           let days = 1;
           if (p && r) { const d=(new Date(r)-new Date(p))/86400000; if(d>0) days=d; }
-          const ins = document.getElementById('b-insurance').value;
-          const insCost = ins==='full'?300*days : ins==='basic'?150*days : 0;
-          const total = (selectedCar.price * days) + insCost;
+          let rental, insCost;
+          if (selectedPackage) {
+            rental = selectedPackage.duration === 'daily' ? selectedPackage.price * days : selectedPackage.price;
+            insCost = (selectedPackage.insurance||0) * days;
+          } else {
+            rental = selectedCar.price * days;
+            insCost = 0;
+          }
+          const total = rental + insCost;
 
           const chargeRes = await fetch('https://mic-electric-car.netlify.app/.netlify/functions/charge', {
             method: 'POST',
@@ -1659,9 +1789,15 @@ async function processPayment() {
     const r2 = document.getElementById('b-return-date').value;
     let days2 = 1;
     if (p2 && r2) { const d=(new Date(r2)-new Date(p2))/86400000; if(d>0) days2=d; }
-    const ins2 = document.getElementById('b-insurance').value;
-    const insCost2 = ins2==='full'?300*days2 : ins2==='basic'?150*days2 : 0;
-    const total2 = selectedCar ? (selectedCar.price * days2) + insCost2 : 0;
+    let rental2, insCost2;
+    if (selectedPackage) {
+      rental2 = selectedPackage.duration === 'daily' ? selectedPackage.price * days2 : selectedPackage.price;
+      insCost2 = (selectedPackage.insurance||0) * days2;
+    } else {
+      rental2 = selectedCar ? selectedCar.price * days2 : 0;
+      insCost2 = 0;
+    }
+    const total2 = rental2 + insCost2;
     // Reset steps
     document.getElementById('qr-step1').style.display = 'block';
     document.getElementById('qr-step2').style.display = 'none';
@@ -1798,9 +1934,15 @@ async function saveBooking(paymentMethod, tokenId) {
   const ref = 'DN' + Date.now().toString().slice(-6);
   const fn = document.getElementById('b-firstname').value;
   const sn = document.getElementById('b-surname').value;
-  const ins = document.getElementById('b-insurance').value;
-  const insCost = ins==='full'?300*days : ins==='basic'?150*days : 0;
-  const total = (selectedCar.price * days) + insCost;
+  let rental, insCost;
+  if (selectedPackage) {
+    rental = selectedPackage.duration === 'daily' ? selectedPackage.price * days : selectedPackage.price;
+    insCost = (selectedPackage.insurance||0) * days;
+  } else {
+    rental = selectedCar.price * days;
+    insCost = 0;
+  }
+  const total = rental + insCost;
 
   const booking = {
     ref, days,
@@ -1813,7 +1955,9 @@ async function saveBooking(paymentMethod, tokenId) {
     address: document.getElementById('b-address').value || '-',
     payment: paymentMethod,
     omiseToken: tokenId || null,
-    insurance: ins,
+    packageId: selectedPackage?.id || null,
+    packageCode: selectedPackage?.code || null,
+    insurance: selectedPackage ? `${selectedPackage.code} (฿${selectedPackage.insurance||0}/day)` : 'none',
     carId: selectedCar.id,
     carName: selectedCar.name,
     carModel: selectedCar.model,
