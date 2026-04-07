@@ -1077,38 +1077,49 @@ async function renderFleet(filterKey) {
       overlayHTML = `<div style="position:absolute;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:#e74c3c;letter-spacing:.1em;text-transform:uppercase">⛔ Not Available</div>`;
     }
 
+    const pkgsForCard = carPackages[String(c.id)] || [];
+    const hasPackage = pkgsForCard.length > 0;
+    const isNoPackage = !hasPackage && !isUnavailable;
+
     let btnHTML = '';
     if (isMaintenance) {
       btnHTML = `<button disabled style="opacity:.5;cursor:not-allowed;background:transparent;color:#f39c12;border:1px solid #f39c12;padding:.5rem 1.2rem;font-family:'DM Sans',sans-serif;font-size:.85rem">🔧 Maintenance</button>`;
     } else if (isBooked) {
       btnHTML = `<button disabled style="opacity:.5;cursor:not-allowed;background:transparent;color:var(--text3);border:1px solid var(--text3);padding:.5rem 1.2rem;font-family:'DM Sans',sans-serif;font-size:.85rem">Unavailable</button>`;
+    } else if (isNoPackage) {
+      btnHTML = `<button disabled style="opacity:.45;cursor:not-allowed;background:transparent;color:var(--text3);border:1px solid var(--border);padding:.5rem 1.2rem;font-family:'DM Sans',sans-serif;font-size:.85rem">Not Available</button>`;
     } else if (window.currentUser) {
       btnHTML = `<button class="btn-book" onclick="openModal(${c.id})">${t.car_book}</button>`;
     } else {
       btnHTML = `<button class="btn-book btn-signin-prompt" onclick="document.getElementById('auth-screen').style.display='flex';showAuthTab('login')" style="background:var(--gold);color:#0a0a0a;border-color:var(--gold)">🔑 Sign In to Book</button>`;
     }
 
-    return `<div class="car-card" style="${isUnavailable ? 'opacity:.55;' : ''}">
+    // Price block — only show if has package
+    const priceBlock = hasPackage ? (()=>{
+      const minPkg = pkgsForCard.reduce((a,b) => a.price < b.price ? a : b);
+      const durLabel = {daily:'/ day', weekly:'/ week', monthly:'/ month', custom:'/ package'}[minPkg.duration] || '/ package';
+      const moreLabel = pkgsForCard.length > 1 ? ` <span style="font-size:.65rem;color:var(--gold)">+${pkgsForCard.length-1} more</span>` : '';
+      return `<div><span class="price-amount">฿${minPkg.price.toLocaleString()}</span><div class="price-unit">${durLabel}${moreLabel}</div></div>`;
+    })() : `<div style="font-size:.8rem;color:var(--text3)">—</div>`;
+
+    const cardOpacity = (isUnavailable || isNoPackage) ? 'opacity:.55;' : '';
+    const noPackageOverlay = isNoPackage ? `
+      <div style="position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center">
+        <span style="font-size:.8rem;font-weight:700;color:var(--text3);letter-spacing:.1em;text-transform:uppercase">Unavailable</span>
+      </div>` : '';
+
+    return `<div class="car-card" style="${cardOpacity}">
       <div class="car-img-wrap" style="position:relative">
         <img src="${c.img}" alt="${c.name}" class="car-img" onerror="this.parentElement.innerHTML='<span class=car-emoji>🚗</span>'">
         ${overlayHTML}
+        ${noPackageOverlay}
       </div>
       <div class="car-category">${cat}</div>
       <div class="car-name">${c.name}</div>
       <div class="car-model">${c.model}</div>
       <div class="car-features">${c.features.map(f=>`<span class="tag">${f}</span>`).join('')}</div>
       <div class="car-price">
-        <div>
-          ${(()=>{
-            const pkgs = carPackages[String(c.id)];
-            if (pkgs && pkgs.length > 0) {
-              const minPkg = pkgs.reduce((a,b) => a.price < b.price ? a : b);
-              const durLabel = {daily:'/ day', weekly:'/ week', monthly:'/ month', custom:'/ package'}[minPkg.duration] || '/ package';
-              return `<span class="price-amount">฿${minPkg.price.toLocaleString()}</span><div class="price-unit">${durLabel}${pkgs.length>1?' <span style="font-size:.65rem;color:var(--gold)">+${pkgs.length-1} more</span>':''}</div>`;
-            }
-            return `<span class="price-amount">฿${c.price.toLocaleString()}</span><div class="price-unit">${t.per_day}</div>`;
-          })()}
-        </div>
+        ${priceBlock}
         ${btnHTML}
       </div>
     </div>`;

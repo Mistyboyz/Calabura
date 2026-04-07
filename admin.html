@@ -1671,36 +1671,36 @@ document.getElementById('adj-overlay').addEventListener('click', function(e) { i
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.2rem">
       <div>
         <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">Package Code</label>
-        <input type="text" id="pkg-code" placeholder="DAILY-STD" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
+        <input type="text" id="pkg-code" placeholder="DAILY-STD" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
       </div>
       <div>
         <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">Duration Type</label>
-        <select id="pkg-duration" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;appearance:none">
-          <option value="daily">Daily (per day)</option>
-          <option value="weekly">Weekly (7 days)</option>
-          <option value="monthly">Monthly (30 days)</option>
-          <option value="custom">Custom (specify days)</option>
+        <select id="pkg-duration" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;appearance:none;cursor:pointer">
+          <option value="daily" style="background:var(--bg3);color:var(--text)">Daily (per day)</option>
+          <option value="weekly" style="background:var(--bg3);color:var(--text)">Weekly (7 days)</option>
+          <option value="monthly" style="background:var(--bg3);color:var(--text)">Monthly (30 days)</option>
+          <option value="custom" style="background:var(--bg3);color:var(--text)">Custom (specify days)</option>
         </select>
       </div>
       <div id="pkg-custom-days-wrap" style="display:none;grid-column:1/-1">
         <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">จำนวนวัน</label>
-        <input type="number" id="pkg-custom-days" placeholder="14" min="1" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
+        <input type="number" id="pkg-custom-days" placeholder="14" min="1" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
       </div>
       <div>
         <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">💰 Package Price (฿)</label>
-        <input type="number" id="pkg-price" placeholder="3500" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'AudiType',sans-serif;font-size:.95rem;font-weight:700;outline:none">
+        <input type="number" id="pkg-price" placeholder="3500" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
       </div>
       <div>
         <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">🛡️ Insurance (฿/day)</label>
-        <input type="number" id="pkg-insurance" placeholder="300" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
+        <input type="number" id="pkg-insurance" placeholder="300" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
       </div>
       <div>
         <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">🏦 Deposit (฿)</label>
-        <input type="number" id="pkg-deposit" placeholder="5000" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
+        <input type="number" id="pkg-deposit" placeholder="5000" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
       </div>
       <div style="grid-column:1/-1">
         <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">Description</label>
-        <input type="text" id="pkg-desc" placeholder="e.g. Standard daily rental with full insurance" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
+        <input type="text" id="pkg-desc" placeholder="e.g. Standard daily rental with full insurance" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
       </div>
     </div>
     <div id="pkg-save-msg" style="color:#2ecc71;font-size:.82rem;margin-bottom:.8rem;display:none">✅ Saved!</div>
@@ -1857,28 +1857,66 @@ function renderAdminCars() {
     document.getElementById('cars-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text3)">No cars found. Click "Add Car" to add one.</div>';
     return;
   }
-  document.getElementById('cars-grid').innerHTML = adminCars.map(c => `
-    <div style="background:var(--bg2);border:1px solid var(--border);overflow:hidden;transition:border .2s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
+  document.getElementById('cars-grid').innerHTML = adminCars.map(c => {
+    // Build spec pills
+    const specs = [
+      c.wd   ? {icon:'⚙️', val: c.wd}                        : null,
+      c.hp   ? {icon:'⚡', val: c.hp + ' HP'}                 : null,
+      c.torque ? {icon:'🔩', val: c.torque + ' Nm'}           : null,
+      c.range  ? {icon:'🔋', val: c.range + ' km'}            : null,
+    ].filter(Boolean);
+
+    const specHTML = specs.length ? `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.35rem;margin-bottom:.8rem">
+        ${specs.map(s => `
+          <div style="display:flex;align-items:center;gap:.35rem;background:var(--bg3);border:1px solid var(--border);padding:.3rem .55rem">
+            <span style="font-size:.72rem">${s.icon}</span>
+            <span style="font-family:'AudiType',sans-serif;font-size:.78rem;font-weight:700;color:var(--text)">${s.val}</span>
+          </div>`).join('')}
+      </div>` : '';
+
+    // Color swatches
+    const colorHTML = (c.colorExt || c.colorInt) ? `
+      <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.8rem">
+        ${c.colorExt ? `<div style="display:flex;align-items:center;gap:.3rem">
+          <span style="font-size:.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em">EXT</span>
+          <span style="font-size:.78rem;color:var(--text2)">${c.colorExt}</span>
+        </div>` : ''}
+        ${c.colorExt && c.colorInt ? `<span style="color:var(--text3)">·</span>` : ''}
+        ${c.colorInt ? `<div style="display:flex;align-items:center;gap:.3rem">
+          <span style="font-size:.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em">INT</span>
+          <span style="font-size:.78rem;color:var(--text2)">${c.colorInt}</span>
+        </div>` : ''}
+      </div>` : '';
+
+    // Plate badge
+    const plateBadge = c.plate ? `<span style="font-family:'AudiType',sans-serif;font-size:.72rem;font-weight:700;background:rgba(201,168,76,.12);border:1px solid var(--border);color:var(--gold);padding:.15rem .55rem;letter-spacing:.05em">${c.plate}</span>` : '';
+
+    return `
+    <div style="background:var(--bg2);border:1px solid var(--border);overflow:hidden;transition:border .2s;display:flex;flex-direction:column" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
       <div style="position:relative">
         <img src="${c.img||''}" style="width:100%;height:150px;object-fit:cover;display:block" onerror="this.style.display='none'" alt="${c.name}">
         <div style="position:absolute;top:.5rem;right:.5rem;display:flex;gap:.3rem">
           <button onclick="openEditCar(${c.id})" style="background:var(--gold);color:#0a0a0a;border:none;padding:.3rem .7rem;font-size:.75rem;font-weight:700;cursor:pointer">✏️ Edit</button>
           <button onclick="deleteCar(${c.id},'${c.name}')" style="background:rgba(231,76,60,.9);color:#fff;border:none;padding:.3rem .6rem;font-size:.75rem;cursor:pointer">🗑</button>
         </div>
+        ${c.plate ? `<div style="position:absolute;bottom:.5rem;left:.5rem">${plateBadge}</div>` : ''}
       </div>
-      <div style="padding:1rem">
+      <div style="padding:1rem;flex:1;display:flex;flex-direction:column">
         <div style="font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.3rem">${c.catKey||c.cat||'—'}</div>
         <div style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;margin-bottom:.2rem">${c.name}</div>
         <div style="font-size:.78rem;color:var(--text3);margin-bottom:.8rem">${c.model||''}</div>
-        <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);padding-top:.8rem">
-          ${(()=>{
-            // Show bound packages instead of raw price
-            return `<div style="font-size:.78rem;color:var(--text3);font-style:italic">ดูราคาใน Packages tab</div>`;
-          })()}
+
+        ${specHTML}
+        ${colorHTML}
+
+        <div style="border-top:1px solid var(--border);padding-top:.7rem;margin-top:auto">
+          <div style="font-size:.75rem;color:var(--text3);font-style:italic;margin-bottom:.5rem">ดูราคาใน Packages tab</div>
+          ${c.features ? `<div style="display:flex;flex-wrap:wrap;gap:.3rem">${c.features.map(f=>`<span style="font-size:.65rem;padding:.15rem .45rem;background:rgba(201,168,76,.08);border:1px solid var(--border);color:var(--text3)">${f}</span>`).join('')}</div>` : ''}
         </div>
-        ${c.features ? `<div style="display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.6rem">${c.features.map(f=>`<span style="font-size:.68rem;padding:.15rem .5rem;background:rgba(201,168,76,.1);border:1px solid var(--border);color:var(--text3)">${f}</span>`).join('')}</div>` : ''}
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function openEditCar(id) {
