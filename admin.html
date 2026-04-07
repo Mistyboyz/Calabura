@@ -415,7 +415,7 @@
     <div class="page-header">
       <div>
         <h2>All Cars</h2>
-        <p style="font-size:.82rem;color:var(--text3);margin-top:.2rem">จัดการยานพาหนะ — ข้อมูลเทคนิค สภาพรถ และราคา</p>
+        <p style="font-size:.82rem;color:var(--text3);margin-top:.2rem">Manage fleet — technical specs, condition &amp; pricing</p>
       </div>
       <div class="header-actions">
         <div style="display:flex;gap:.4rem;background:var(--bg3);border:1px solid var(--border);padding:.25rem">
@@ -434,7 +434,7 @@
         <table>
           <thead>
             <tr>
-              <th>รถ</th><th>ทะเบียน</th><th>ประเภท</th><th>ราคา/วัน</th><th>HP</th><th>Range</th><th>สภาพ</th><th>Status</th><th>Actions</th>
+              <th>Car</th><th>Plate</th><th>Type</th><th>Price/Day</th><th>HP</th><th>Range</th><th>Condition</th><th>Status</th><th>Actions</th>
             </tr>
           </thead>
           <tbody id="cars-list-tbody"></tbody>
@@ -449,7 +449,7 @@
     <div class="page-header">
       <div>
         <h2>Rental Packages</h2>
-        <p style="font-size:.82rem;color:var(--text3);margin-top:.2rem">กำหนด package ราคา insurance และ deposit แยกจากรายรถ</p>
+        <p style="font-size:.82rem;color:var(--text3);margin-top:.2rem">Define pricing packages — duration, insurance &amp; deposit</p>
       </div>
       <div class="header-actions">
         <button class="btn-refresh" onclick="openAddPackage()" style="background:var(--gold);color:#0a0a0a;border-color:var(--gold)">➕ Add Package</button>
@@ -686,7 +686,7 @@ const FIREBASE_URL = 'https://calabura-ea686-default-rtdb.asia-southeast1.fireba
 const ADMIN_USER = 'admin';
 const ADMIN_PASS = 'drivenow2026'; // ⚠️ For production: move to server-side auth
 
-// ============ DEMO DATA (ใช้เมื่อไม่มี Firebase) ============
+// ============ DEMO DATA (used when Firebase is not configured) ============
 const DEMO = [
   {ref:'DN001234',name:'Somchai Jaidee',phone:'081-234-5678',email:'somchai@email.com',idCard:'1234567890123',
    payment:'Credit/Debit Card',insurance:'Full Coverage (+฿300/day)',
@@ -1061,7 +1061,7 @@ async function loadUsers() {
 
 // ============ LOAD BOOKINGS ============
 async function loadBookings() {
-  document.getElementById('table-body-wrap').innerHTML = '<div class="loading-state"><div class="spinner"></div><p style="margin-top:1rem">กำลังโหลดข้อมูล...</p></div>';
+  document.getElementById('table-body-wrap').innerHTML = '<div class="loading-state"><div class="spinner"></div><p style="margin-top:1rem">Loading...</p></div>';
   try {
     if (FIREBASE_URL.includes('YOUR_PROJECT_ID')) throw new Error('not configured');
     const res = await fetch(`${FIREBASE_URL}/bookings.json`);
@@ -1192,12 +1192,12 @@ async function updateStatus(ref, newStatus) {
           method:'PUT', headers:{'Content-Type':'application/json'},
           body: JSON.stringify(historyEntry)
         });
-        // 2. Delete from bookings → รถกลับมาโชว์หน้า User
+        // 2. Delete from bookings → car becomes available again
         await fetch(`${FIREBASE_URL}/bookings/${ref}.json`, { method:'DELETE' });
         allBookings = allBookings.filter(x => x.ref !== ref);
 
       } else if (newStatus === 'cancelled') {
-        // Save cancelled record then delete → รถกลับมาโชว์หน้า User
+        // Save cancelled record then delete → car becomes available again
         const cancelEntry = { ...b, cancelledAt: new Date().toISOString(), status: 'cancelled' };
         await fetch(`${FIREBASE_URL}/history/${ref}.json`, {
           method:'PUT', headers:{'Content-Type':'application/json'},
@@ -1222,7 +1222,7 @@ async function updateStatus(ref, newStatus) {
 }
 
 async function deleteBooking(ref) {
-  if (!confirm(`ลบการจอง ${ref} หรือไม่?`)) return;
+  if (!confirm(`Delete booking ${ref}?`)) return;
   allBookings = allBookings.filter(x=>x.ref!==ref);
   if (!usingDemo) {
     try { await fetch(`${FIREBASE_URL}/bookings/${ref}.json`,{method:'DELETE'}); } catch(e){}
@@ -1267,10 +1267,10 @@ function renderDetailActions() {
       ? `<button class="status-btn confirm" onclick="updateStatus('${b.ref}','confirmed')">✅ Confirm Booking</button>
          <button class="status-btn cancel" onclick="updateStatus('${b.ref}','cancelled')">❌ Cancel Order</button>` : ''}
     ${b.status==='confirmed'
-      ? `<button class="status-btn pickup" onclick="updateStatus('${b.ref}','active')">🚗 ส่งมอบเรียบร้อยแล้ว</button>
+      ? `<button class="status-btn pickup" onclick="updateStatus('${b.ref}','active')">🚗 Mark as Delivered</button>
          <button class="status-btn cancel" onclick="updateStatus('${b.ref}','cancelled')">❌ Cancel Order</button>` : ''}
     ${b.status==='active'
-      ? `<button class="status-btn complete" onclick="updateStatus('${b.ref}','completed')">🏁 รับรถคืนเรียบร้อยแล้ว</button>` : ''}
+      ? `<button class="status-btn complete" onclick="updateStatus('${b.ref}','completed')">🏁 Mark as Returned</button>` : ''}
     ${b.status==='completed'||b.status==='cancelled'
       ? `<span style="font-size:.82rem;color:var(--text3)">— No further actions —</span>` : ''}`;
 }
@@ -1562,7 +1562,7 @@ document.getElementById('adj-overlay').addEventListener('click', function(e) { i
         </div>
         <div>
           <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">🔖 License Plate</label>
-          <input type="text" id="car-plate" placeholder="กข 1234" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.7rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
+          <input type="text" id="car-plate" placeholder="e.g. AB 1234" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.7rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
         </div>
         <div>
           <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">Model / Spec</label>
@@ -1683,7 +1683,7 @@ document.getElementById('adj-overlay').addEventListener('click', function(e) { i
         </select>
       </div>
       <div id="pkg-custom-days-wrap" style="display:none;grid-column:1/-1">
-        <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">จำนวนวัน</label>
+        <label style="font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:block;margin-bottom:.4rem">Number of Days</label>
         <input type="number" id="pkg-custom-days" placeholder="14" min="1" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
       </div>
       <div>
@@ -1746,7 +1746,7 @@ document.getElementById('adj-overlay').addEventListener('click', function(e) { i
     <div style="padding:1.5rem 2rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--bg2);z-index:1">
       <div>
         <h3 style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700">📋 Admin Booking</h3>
-        <p style="font-size:.75rem;color:var(--text3);margin-top:.2rem">จองแทนลูกค้า — บันทึกตรงเข้า Firebase</p>
+        <p style="font-size:.75rem;color:var(--text3);margin-top:.2rem">Create booking on behalf of customer</p>
       </div>
       <button onclick="closeAdminBooking()" style="background:none;border:1px solid var(--border);color:var(--text);width:32px;height:32px;cursor:pointer;font-size:1rem">✕</button>
     </div>
@@ -1756,11 +1756,11 @@ document.getElementById('adj-overlay').addEventListener('click', function(e) { i
         <div style="grid-column:1/-1;font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;padding-bottom:.4rem;border-bottom:1px solid var(--border)">👤 Customer Information</div>
         <div>
           <label style="font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;display:block;margin-bottom:.4rem">First Name</label>
-          <input type="text" id="ab-firstname" placeholder="ชื่อ" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.7rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
+          <input type="text" id="ab-firstname" placeholder="First name" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.7rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
         </div>
         <div>
           <label style="font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;display:block;margin-bottom:.4rem">Surname</label>
-          <input type="text" id="ab-surname" placeholder="นามสกุล" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.7rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
+          <input type="text" id="ab-surname" placeholder="Surname" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:.7rem 1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
         </div>
         <div>
           <label style="font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;display:block;margin-bottom:.4rem">Mobile</label>
@@ -1858,39 +1858,70 @@ function renderAdminCars() {
     return;
   }
   document.getElementById('cars-grid').innerHTML = adminCars.map(c => {
-    // Build spec pills
-    const specs = [
-      c.wd   ? {icon:'⚙️', val: c.wd}                        : null,
-      c.hp   ? {icon:'⚡', val: c.hp + ' HP'}                 : null,
-      c.torque ? {icon:'🔩', val: c.torque + ' Nm'}           : null,
-      c.range  ? {icon:'🔋', val: c.range + ' km'}            : null,
+    // Spec pills — top row (drive + performance)
+    const perfSpecs = [
+      c.wd      ? {label:'Drive',  val: c.wd}              : null,
+      c.hp      ? {label:'HP',     val: c.hp + ' hp'}      : null,
+      c.torque  ? {label:'Torque', val: c.torque + ' Nm'}  : null,
+      c.range   ? {label:'Range',  val: c.range + ' km'}   : null,
     ].filter(Boolean);
 
-    const specHTML = specs.length ? `
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.35rem;margin-bottom:.8rem">
-        ${specs.map(s => `
-          <div style="display:flex;align-items:center;gap:.35rem;background:var(--bg3);border:1px solid var(--border);padding:.3rem .55rem">
-            <span style="font-size:.72rem">${s.icon}</span>
-            <span style="font-family:'AudiType',sans-serif;font-size:.78rem;font-weight:700;color:var(--text)">${s.val}</span>
-          </div>`).join('')}
+    // Charging specs — second row
+    const chargeSpecs = [
+      c.acCharge ? {label:'AC', val: c.acCharge} : null,
+      c.dcCharge ? {label:'DC', val: c.dcCharge} : null,
+    ].filter(Boolean);
+
+    // Motor No
+    const motorHTML = c.motorNo ? `
+      <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.5rem">
+        <span style="font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);font-weight:600">Motor No.</span>
+        <span style="font-family:'AudiType',sans-serif;font-size:.75rem;color:var(--text2)">${c.motorNo}</span>
       </div>` : '';
 
-    // Color swatches
+    const pillStyle = `display:flex;flex-direction:column;background:var(--bg3);border:1px solid var(--border);padding:.3rem .55rem;min-width:0`;
+    const labelStyle = `font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);font-weight:600;line-height:1`;
+    const valStyle = `font-family:'AudiType',sans-serif;font-size:.8rem;font-weight:700;color:var(--text);margin-top:.15rem`;
+
+    const perfHTML = perfSpecs.length ? `
+      <div style="display:grid;grid-template-columns:repeat(${Math.min(perfSpecs.length,4)},1fr);gap:.3rem;margin-bottom:.35rem">
+        ${perfSpecs.map(s=>`<div style="${pillStyle}"><span style="${labelStyle}">${s.label}</span><span style="${valStyle}">${s.val}</span></div>`).join('')}
+      </div>` : '';
+
+    const chargeHTML = chargeSpecs.length ? `
+      <div style="display:grid;grid-template-columns:repeat(${chargeSpecs.length},1fr);gap:.3rem;margin-bottom:.35rem">
+        ${chargeSpecs.map(s=>`<div style="${pillStyle}"><span style="${labelStyle}">${s.label} Charging</span><span style="${valStyle};font-size:.72rem">${s.val}</span></div>`).join('')}
+      </div>` : '';
+
+    const hasTechSpecs = perfSpecs.length || chargeSpecs.length || c.motorNo;
+    const techSection = hasTechSpecs ? `
+      <div style="margin-bottom:.8rem">
+        <div style="font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.45rem;opacity:.7">Technical Specs</div>
+        ${perfHTML}${chargeHTML}${motorHTML}
+      </div>` : '';
+
+    // Color row
     const colorHTML = (c.colorExt || c.colorInt) ? `
-      <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.8rem">
+      <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.8rem">
         ${c.colorExt ? `<div style="display:flex;align-items:center;gap:.3rem">
-          <span style="font-size:.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em">EXT</span>
+          <span style="font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);font-weight:600">EXT</span>
           <span style="font-size:.78rem;color:var(--text2)">${c.colorExt}</span>
         </div>` : ''}
-        ${c.colorExt && c.colorInt ? `<span style="color:var(--text3)">·</span>` : ''}
+        ${c.colorExt && c.colorInt ? `<span style="color:var(--border)">|</span>` : ''}
         ${c.colorInt ? `<div style="display:flex;align-items:center;gap:.3rem">
-          <span style="font-size:.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em">INT</span>
+          <span style="font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);font-weight:600">INT</span>
           <span style="font-size:.78rem;color:var(--text2)">${c.colorInt}</span>
         </div>` : ''}
       </div>` : '';
 
     // Plate badge
     const plateBadge = c.plate ? `<span style="font-family:'AudiType',sans-serif;font-size:.72rem;font-weight:700;background:rgba(201,168,76,.12);border:1px solid var(--border);color:var(--gold);padding:.15rem .55rem;letter-spacing:.05em">${c.plate}</span>` : '';
+
+    // Condition indicator
+    const condHTML = c.condition ? `
+      <div style="font-size:.72rem;color:var(--orange);margin-bottom:.5rem;display:flex;align-items:center;gap:.3rem">
+        <span>⚠️</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.condition.substring(0,40)}${c.condition.length>40?'…':''}</span>
+      </div>` : '';
 
     return `
     <div style="background:var(--bg2);border:1px solid var(--border);overflow:hidden;transition:border .2s;display:flex;flex-direction:column" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
@@ -1903,15 +1934,16 @@ function renderAdminCars() {
         ${c.plate ? `<div style="position:absolute;bottom:.5rem;left:.5rem">${plateBadge}</div>` : ''}
       </div>
       <div style="padding:1rem;flex:1;display:flex;flex-direction:column">
-        <div style="font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.3rem">${c.catKey||c.cat||'—'}</div>
-        <div style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;margin-bottom:.2rem">${c.name}</div>
+        <div style="font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.25rem">${c.catKey||c.cat||'—'}</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;margin-bottom:.15rem">${c.name}</div>
         <div style="font-size:.78rem;color:var(--text3);margin-bottom:.8rem">${c.model||''}</div>
 
-        ${specHTML}
+        ${techSection}
         ${colorHTML}
+        ${condHTML}
 
         <div style="border-top:1px solid var(--border);padding-top:.7rem;margin-top:auto">
-          <div style="font-size:.75rem;color:var(--text3);font-style:italic;margin-bottom:.5rem">ดูราคาใน Packages tab</div>
+          <div style="font-size:.72rem;color:var(--text3);font-style:italic;margin-bottom:.5rem">See pricing in Packages tab</div>
           ${c.features ? `<div style="display:flex;flex-wrap:wrap;gap:.3rem">${c.features.map(f=>`<span style="font-size:.65rem;padding:.15rem .45rem;background:rgba(201,168,76,.08);border:1px solid var(--border);color:var(--text3)">${f}</span>`).join('')}</div>` : ''}
         </div>
       </div>
@@ -2402,7 +2434,7 @@ async function deleteBinding(id) {
 function closeBindModal() { document.getElementById('bind-modal-overlay').style.display='none'; }
 
 // ============================================================
-// ADMIN BOOKING (จองแทนลูกค้า)
+// ADMIN BOOKING (create booking on behalf of customer)
 // ============================================================
 let _abSelectedCar = null, _abSelectedPkg = null;
 
@@ -2467,7 +2499,7 @@ async function saveAdminBooking() {
   const err = document.getElementById('ab-err');
   err.style.display = 'none';
   if (!fn || !phone || !_abSelectedCar || !p || !r) {
-    err.textContent = 'กรุณากรอก First Name, Mobile, Car, และวันที่'; err.style.display='block'; return;
+    err.textContent = 'Please fill in First Name, Mobile, Car, and dates.'; err.style.display='block'; return;
   }
   if (new Date(r) <= new Date(p)) { err.textContent='Return date must be after pickup.'; err.style.display='block'; return; }
   const days = Math.max(1, Math.round((new Date(r)-new Date(p))/86400000));
