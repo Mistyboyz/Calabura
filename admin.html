@@ -232,20 +232,36 @@
     <p>Admin Panel</p>
   </div>
   <nav class="sidebar-nav">
+
+    <!-- Overview -->
+    <div style="padding:.75rem 1.5rem .3rem;font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);font-weight:600">Overview</div>
     <div class="nav-item" onclick="showTab('dashboard')"><span class="nav-icon">📊</span>Dashboard</div>
+
+    <!-- Fleet -->
+    <div style="padding:.75rem 1.5rem .3rem;font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);font-weight:600;margin-top:.25rem">Fleet</div>
+    <div class="nav-item" onclick="showTab('cars')"><span class="nav-icon">🚗</span>All Cars</div>
+    <div class="nav-item" onclick="showTab('packages')"><span class="nav-icon">📦</span>Packages</div>
+
+    <!-- Customers -->
+    <div style="padding:.75rem 1.5rem .3rem;font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);font-weight:600;margin-top:.25rem">Customers</div>
+    <div class="nav-item" onclick="showTab('users')"><span class="nav-icon">👥</span>Users</div>
+
+    <!-- Bookings -->
+    <div style="padding:.75rem 1.5rem .3rem;font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);font-weight:600;margin-top:.25rem">Bookings</div>
     <div class="nav-item active" onclick="showTab('bookings')" style="position:relative">
       <span class="nav-icon">📋</span>Booking List
       <span id="notify-badge" style="display:none;position:absolute;right:.8rem;top:50%;transform:translateY(-50%);background:#e74c3c;color:#fff;font-size:.65rem;font-weight:700;padding:.15rem .45rem;border-radius:999px;min-width:18px;text-align:center">0</span>
     </div>
     <div class="nav-item" onclick="showTab('calendar')"><span class="nav-icon">📅</span>Calendar</div>
-    <div class="nav-item" onclick="showTab('cars')"><span class="nav-icon">🚗</span>All Cars</div>
-    <div class="nav-item" onclick="showTab('packages')"><span class="nav-icon">📦</span>Packages</div>
-    <div class="nav-item" onclick="showTab('users')"><span class="nav-icon">👥</span>Users</div>
     <div class="nav-item" onclick="showTab('history')"><span class="nav-icon">🕒</span>History</div>
     <div class="nav-item" onclick="showTab('adjustments')"><span class="nav-icon">⚙️</span>Adjustments</div>
+
+    <!-- System -->
+    <div style="padding:.75rem 1.5rem .3rem;font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);font-weight:600;margin-top:.25rem">System</div>
     <div class="nav-item" onclick="showTab('maintenance')"><span class="nav-icon">🔧</span>Maintenance</div>
     <div class="nav-item" onclick="window.open('index.html','_blank')"><span class="nav-icon">🌐</span>Customer Website</div>
-    <div class="nav-item" onclick="doLogout()" style="margin-top:auto"><span class="nav-icon">🚪</span>Logout</div>
+    <div class="nav-item" onclick="doLogout()"><span class="nav-icon">🚪</span>Logout</div>
+  </nav>
   </nav>
   <div class="sidebar-footer">
     <span class="online-dot"></span>Online · Realtime updates
@@ -759,7 +775,7 @@ function showTab(tab) {
   document.getElementById('tab-bookings').style.display = 'none';
   document.getElementById('tab-'+tab).style.display = 'block';
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  const tabOrder = ['dashboard','bookings','calendar','cars','packages','users','history','adjustments','maintenance'];
+  const tabOrder = ['dashboard','cars','packages','users','bookings','calendar','history','adjustments','maintenance'];
   const idx = tabOrder.indexOf(tab);
   document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i === idx));
   if (tab === 'dashboard') renderDashboard();
@@ -2575,8 +2591,9 @@ async function saveAdminBooking() {
     allBookings.unshift(booking);
     updateStats(); renderTable();
     closeAdminBooking();
-    // Show success toast
     showToast(`✅ Booking ${ref} created!`, 'success');
+    const btnOk = document.querySelector('#admin-booking-overlay button[onclick="saveAdminBooking()"]');
+    if(btnOk){btnOk.disabled=false;btnOk.textContent='📋 Create Booking';}
   } catch(e) {
     err.textContent='Error: '+e.message; err.style.display='block';
     const btn = document.querySelector('#admin-booking-overlay button[onclick="saveAdminBooking()"]');
