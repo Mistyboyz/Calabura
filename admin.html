@@ -28,16 +28,16 @@
 
   /* SIDEBAR */
   .sidebar { width:240px; background:var(--bg2); border-right:1px solid var(--border); display:flex; flex-direction:column; position:fixed; height:100vh; z-index:50; }
-  .sidebar-logo { padding:1.8rem 1.5rem; border-bottom:1px solid var(--border); }
+  .sidebar-logo { padding:1.2rem 1.5rem; border-bottom:1px solid var(--border); }
   .sidebar-logo h1 { font-family:'Playfair Display',serif; font-size:1.3rem; font-weight:900; }
   .sidebar-logo h1 span { color:var(--gold); }
   .sidebar-logo p { font-size:.72rem; color:var(--text3); margin-top:.2rem; letter-spacing:.1em; text-transform:uppercase; }
-  .sidebar-nav { flex:1; padding:1rem 0; }
-  .nav-item { display:flex; align-items:center; gap:.8rem; padding:.75rem 1.5rem; cursor:pointer; color:var(--text2); font-size:.88rem; font-weight:500; transition:all .2s; border-left:3px solid transparent; }
+  .sidebar-nav { flex:1; padding:.5rem 0; overflow-y:auto; }
+  .nav-item { display:flex; align-items:center; gap:.8rem; padding:.55rem 1.5rem; cursor:pointer; color:var(--text2); font-size:.85rem; font-weight:500; transition:all .2s; border-left:3px solid transparent; }
   .nav-item:hover { color:var(--text); background:rgba(255,255,255,.03); }
   .nav-item.active { color:var(--gold); border-left-color:var(--gold); background:rgba(201,168,76,.07); }
   .nav-icon { font-size:1rem; width:20px; text-align:center; }
-  .sidebar-footer { padding:1.2rem 1.5rem; border-top:1px solid var(--border); font-size:.78rem; color:var(--text3); }
+  .sidebar-footer { padding:.8rem 1.5rem; border-top:1px solid var(--border); font-size:.75rem; color:var(--text3); }
   .online-dot { display:inline-block; width:7px; height:7px; background:var(--green); border-radius:50%; margin-right:.4rem; animation:pulse 2s infinite; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
@@ -234,21 +234,21 @@
   <nav class="sidebar-nav">
 
     <!-- Overview -->
-    <div style="padding:.75rem 1.5rem .3rem;font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);font-weight:600">Overview</div>
-    <div class="nav-item" onclick="showTab('dashboard')"><span class="nav-icon">📊</span>Dashboard</div>
+    <div style="padding:.6rem 1.5rem .2rem;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);font-weight:600">Overview</div>
+    <div class="nav-item active" onclick="showTab('dashboard')"><span class="nav-icon">📊</span>Dashboard</div>
 
     <!-- Fleet -->
-    <div style="padding:.75rem 1.5rem .3rem;font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);font-weight:600;margin-top:.25rem">Fleet</div>
+    <div style="padding:.6rem 1.5rem .2rem;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);font-weight:600;margin-top:.1rem">Fleet</div>
     <div class="nav-item" onclick="showTab('cars')"><span class="nav-icon">🚗</span>All Cars</div>
     <div class="nav-item" onclick="showTab('packages')"><span class="nav-icon">📦</span>Packages</div>
 
     <!-- Customers -->
-    <div style="padding:.75rem 1.5rem .3rem;font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);font-weight:600;margin-top:.25rem">Customers</div>
+    <div style="padding:.6rem 1.5rem .2rem;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);font-weight:600;margin-top:.1rem">Customers</div>
     <div class="nav-item" onclick="showTab('users')"><span class="nav-icon">👥</span>Users</div>
 
     <!-- Bookings -->
-    <div style="padding:.75rem 1.5rem .3rem;font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);font-weight:600;margin-top:.25rem">Bookings</div>
-    <div class="nav-item active" onclick="showTab('bookings')" style="position:relative">
+    <div style="padding:.6rem 1.5rem .2rem;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);font-weight:600;margin-top:.1rem">Bookings</div>
+    <div class="nav-item" onclick="showTab('bookings')" style="position:relative">
       <span class="nav-icon">📋</span>Booking List
       <span id="notify-badge" style="display:none;position:absolute;right:.8rem;top:50%;transform:translateY(-50%);background:#e74c3c;color:#fff;font-size:.65rem;font-weight:700;padding:.15rem .45rem;border-radius:999px;min-width:18px;text-align:center">0</span>
     </div>
@@ -257,7 +257,7 @@
     <div class="nav-item" onclick="showTab('adjustments')"><span class="nav-icon">⚙️</span>Adjustments</div>
 
     <!-- System -->
-    <div style="padding:.75rem 1.5rem .3rem;font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);font-weight:600;margin-top:.25rem">System</div>
+    <div style="padding:.6rem 1.5rem .2rem;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);font-weight:600;margin-top:.1rem">System</div>
     <div class="nav-item" onclick="showTab('maintenance')"><span class="nav-icon">🔧</span>Maintenance</div>
     <div class="nav-item" onclick="window.open('index.html','_blank')"><span class="nav-icon">🌐</span>Customer Website</div>
     <div class="nav-item" onclick="doLogout()"><span class="nav-icon">🚪</span>Logout</div>
@@ -772,8 +772,7 @@ function doLogin() {
   const p = document.getElementById('login-pass').value;
   if (u === ADMIN_USER && p === ADMIN_PASS) {
     document.getElementById('login-screen').style.display = 'none';
-    showTab('bookings');
-    loadBookings();
+    showTab('dashboard');
   } else {
     document.getElementById('login-error').style.display = 'block';
   }
