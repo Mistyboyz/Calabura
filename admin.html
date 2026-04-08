@@ -2356,7 +2356,6 @@ function renderPackagesPage() {
       </thead>
       <tbody style="display:block;height:${fixedH}px;overflow-y:auto">
         ${pageItems.map((p, i) => `<tr style="display:table;width:100%;table-layout:fixed;border-bottom:1px solid rgba(201,168,76,.06);transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,.02)'" onmouseout="this.style.background='transparent'">
-          <tr style="border-bottom:1px solid rgba(201,168,76,.06);transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,.02)'" onmouseout="this.style.background='transparent'">
             <td style="padding:.85rem 1rem">
               <div style="font-family:'Playfair Display',serif;font-size:.95rem;font-weight:700;color:var(--text)">${p.code}</div>
               ${p.customDays ? `<div style="font-size:.72rem;color:var(--text3);margin-top:.1rem">${p.customDays} days</div>` : ''}
@@ -2466,7 +2465,7 @@ async function savePkg() {
     });
     const idx = adminPackages.findIndex(x=>x.id===id);
     if (idx>=0) adminPackages[idx]=pkg; else adminPackages.push(pkg);
-    renderPackages();
+    renderPackagesPage();
     document.getElementById('pkg-save-msg').style.display = 'block';
     setTimeout(() => { document.getElementById('pkg-save-msg').style.display='none'; closePkgModal(); }, 1200);
   } catch(e) { alert('Save failed: '+e.message); }
@@ -2476,7 +2475,7 @@ async function deletePkg(id, code) {
   if (!confirm(`Delete package "${code}"?`)) return;
   await fetch(`${FIREBASE_URL}/packages/${id}.json`, {method:'DELETE'});
   adminPackages = adminPackages.filter(x=>x.id!==id);
-  renderPackages();
+  renderPackagesPage();
 }
 
 function closePkgModal() { document.getElementById('pkg-modal-overlay').style.display = 'none'; }
