@@ -2329,51 +2329,56 @@ function renderPackagesPage() {
   const start = (pkgCurrentPage - 1) * PKG_PER_PAGE;
   const pageItems = adminPackages.slice(start, start + PKG_PER_PAGE);
 
+  // Pad to always show PKG_PER_PAGE rows (fixed height without display:block hack)
+  const emptyRows = PKG_PER_PAGE - pageItems.length;
+  const emptyRowHTML = `<tr style="height:48px;border-bottom:1px solid rgba(201,168,76,.04)">
+    <td colspan="7"></td></tr>`;
+
   if (countEl) countEl.textContent = total + ' package' + (total !== 1 ? 's' : '');
 
-  const durLabel = {daily:'Daily',weekly:'Weekly (7d)',monthly:'Monthly (30d)',custom:'Custom'};
-
-  // Fixed row height: each row ~48px, 10 rows = 480px
-  const ROW_H = 48;
-  const fixedH = PKG_PER_PAGE * ROW_H;
+  const durLabel = {daily:'Daily', weekly:'Weekly (7d)', monthly:'Monthly (30d)', custom:'Custom'};
+  const thStyle = 'padding:.75rem 1rem;text-align:left;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;white-space:nowrap';
+  const thStyleR = 'padding:.75rem 1rem;text-align:right;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600;white-space:nowrap';
 
   grid.innerHTML = `
-    <table style="width:100%;border-collapse:collapse;table-layout:fixed">
-      <colgroup>
-        <col style="width:18%"><col style="width:12%"><col style="width:11%">
-        <col style="width:11%"><col style="width:11%"><col style="width:27%"><col style="width:10%">
-      </colgroup>
-      <thead style="display:table;width:100%;table-layout:fixed">
+    <table style="width:100%;border-collapse:collapse">
+      <thead>
         <tr style="border-bottom:1px solid var(--border)">
-          <th style="padding:.75rem 1rem;text-align:left;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600">Code</th>
-          <th style="padding:.75rem 1rem;text-align:left;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600">Duration</th>
-          <th style="padding:.75rem 1rem;text-align:right;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600">Price</th>
-          <th style="padding:.75rem 1rem;text-align:right;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600">Insurance/day</th>
-          <th style="padding:.75rem 1rem;text-align:right;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600">Deposit</th>
-          <th style="padding:.75rem 1rem;text-align:left;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600">Description</th>
+          <th style="${thStyle}">Code</th>
+          <th style="${thStyle}">Duration</th>
+          <th style="${thStyleR}">Price</th>
+          <th style="${thStyleR}">Insurance/day</th>
+          <th style="${thStyleR}">Deposit</th>
+          <th style="${thStyle}">Description</th>
           <th style="padding:.75rem 1rem;text-align:center;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600">Actions</th>
         </tr>
       </thead>
-      <tbody style="display:block;height:${fixedH}px;overflow-y:auto">
-        ${pageItems.map((p, i) => `<tr style="display:table;width:100%;table-layout:fixed;border-bottom:1px solid rgba(201,168,76,.06);transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,.02)'" onmouseout="this.style.background='transparent'">
-            <td style="padding:.85rem 1rem">
-              <div style="font-family:'Playfair Display',serif;font-size:.95rem;font-weight:700;color:var(--text)">${p.code}</div>
-              ${p.customDays ? `<div style="font-size:.72rem;color:var(--text3);margin-top:.1rem">${p.customDays} days</div>` : ''}
+      <tbody>
+        ${pageItems.map(p => `
+          <tr style="height:48px;border-bottom:1px solid rgba(201,168,76,.06);transition:background .15s"
+            onmouseover="this.style.background='rgba(255,255,255,.025)'"
+            onmouseout="this.style.background='transparent'">
+            <td style="padding:.6rem 1rem">
+              <div style="font-weight:700;font-size:.92rem;color:var(--text)">${p.code}</div>
+              ${p.customDays ? `<div style="font-size:.7rem;color:var(--text3)">${p.customDays} days</div>` : ''}
             </td>
-            <td style="padding:.85rem 1rem">
-              <span style="font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.2rem .6rem;border:1px solid var(--border);color:var(--gold)">${durLabel[p.duration]||p.duration}</span>
+            <td style="padding:.6rem 1rem">
+              <span style="font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.2rem .55rem;border:1px solid var(--border);color:var(--gold)">${durLabel[p.duration]||p.duration}</span>
             </td>
-            <td style="padding:.85rem 1rem;text-align:right;font-family:'AudiType',sans-serif;font-size:1rem;font-weight:900;color:var(--gold)">฿${(p.price||0).toLocaleString()}</td>
-            <td style="padding:.85rem 1rem;text-align:right;font-family:'AudiType',sans-serif;font-size:.9rem;color:var(--text2)">${p.insurance ? '฿'+p.insurance.toLocaleString() : '—'}</td>
-            <td style="padding:.85rem 1rem;text-align:right;font-family:'AudiType',sans-serif;font-size:.9rem;color:var(--text2)">${p.deposit ? '฿'+p.deposit.toLocaleString() : '—'}</td>
-            <td style="padding:.85rem 1rem;font-size:.82rem;color:var(--text3);max-width:200px">${p.desc||'—'}</td>
-            <td style="padding:.85rem 1rem;text-align:center">
-              <div class="action-btns" style="justify-content:center">
-                <button onclick="openEditPackage('${p.id}')" class="act-btn">✏️ Edit</button>
-                <button onclick="deletePkg('${p.id}','${p.code}')" class="act-btn danger">🗑</button>
+            <td style="padding:.6rem 1rem;text-align:right;font-family:'AudiType',sans-serif;font-size:.95rem;font-weight:900;color:var(--gold)">฿${(p.price||0).toLocaleString()}</td>
+            <td style="padding:.6rem 1rem;text-align:right;font-family:'AudiType',sans-serif;font-size:.88rem;color:var(--text2)">${p.insurance ? '฿'+p.insurance.toLocaleString() : '—'}</td>
+            <td style="padding:.6rem 1rem;text-align:right;font-family:'AudiType',sans-serif;font-size:.88rem;color:var(--text2)">${p.deposit ? '฿'+p.deposit.toLocaleString() : '—'}</td>
+            <td style="padding:.6rem 1rem;font-size:.82rem;color:var(--text3)">
+              <div style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.desc||'—'}</div>
+            </td>
+            <td style="padding:.6rem 1rem;text-align:center">
+              <div style="display:flex;gap:.4rem;justify-content:center">
+                <button onclick="openEditPackage('${p.id}')" class="act-btn" style="font-size:.78rem">✏️ Edit</button>
+                <button onclick="deletePkg('${p.id}','${p.code}')" class="act-btn danger" style="font-size:.78rem">🗑</button>
               </div>
             </td>
           </tr>`).join('')}
+        ${Array(emptyRows).fill(emptyRowHTML).join('')}
       </tbody>
     </table>`;
 
@@ -2381,23 +2386,19 @@ function renderPackagesPage() {
   if (totalPages > 1) {
     pagination.style.display = 'flex';
     document.getElementById('pkg-page-info').textContent =
-      `Showing ${start+1}–${Math.min(start+PKG_PER_PAGE, total)} of ${total}`;
+      'Showing ' + (start+1) + '–' + Math.min(start+PKG_PER_PAGE, total) + ' of ' + total;
 
-    // Page number buttons
     const btnWrap = document.getElementById('pkg-page-btns');
-    btnWrap.innerHTML = Array.from({length: totalPages}, (_, i) => i+1).map(pg => `
-      <button onclick="pkgGoToPage(${pg})" style="
-        background:${pg===pkgCurrentPage?'var(--gold)':'var(--bg3)'};
-        color:${pg===pkgCurrentPage?'#0a0a0a':'var(--text2)'};
-        border:1px solid ${pg===pkgCurrentPage?'var(--gold)':'var(--border)'};
-        padding:.3rem .65rem;font-family:'DM Sans',sans-serif;font-size:.8rem;
-        font-weight:${pg===pkgCurrentPage?'700':'400'};cursor:pointer;transition:all .2s
-      ">${pg}</button>`).join('');
+    btnWrap.innerHTML = Array.from({length: totalPages}, (_, i) => i+1).map(pg =>
+      `<button onclick="pkgGoToPage(${pg})" style="background:${pg===pkgCurrentPage?'var(--gold)':'var(--bg3)'};color:${pg===pkgCurrentPage?'#0a0a0a':'var(--text2)'};border:1px solid ${pg===pkgCurrentPage?'var(--gold)':'var(--border)'};padding:.3rem .65rem;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:${pg===pkgCurrentPage?'700':'400'};cursor:pointer;transition:all .2s">${pg}</button>`
+    ).join('');
 
-    document.getElementById('pkg-prev-btn').disabled = pkgCurrentPage === 1;
-    document.getElementById('pkg-prev-btn').style.opacity = pkgCurrentPage === 1 ? '.4' : '1';
-    document.getElementById('pkg-next-btn').disabled = pkgCurrentPage === totalPages;
-    document.getElementById('pkg-next-btn').style.opacity = pkgCurrentPage === totalPages ? '.4' : '1';
+    const prevBtn = document.getElementById('pkg-prev-btn');
+    const nextBtn = document.getElementById('pkg-next-btn');
+    prevBtn.disabled = pkgCurrentPage === 1;
+    prevBtn.style.opacity = pkgCurrentPage === 1 ? '.4' : '1';
+    nextBtn.disabled = pkgCurrentPage === totalPages;
+    nextBtn.style.opacity = pkgCurrentPage === totalPages ? '.4' : '1';
   } else {
     pagination.style.display = 'none';
   }
@@ -2504,49 +2505,53 @@ function renderBindingsPage() {
   bindCurrentPage = Math.min(bindCurrentPage, Math.max(1, totalPages));
   const start = (bindCurrentPage - 1) * BIND_PER_PAGE;
   const pageItems = allBindings.slice(start, start + BIND_PER_PAGE);
-
-  const ROW_H = 48;
-  const fixedH = BIND_PER_PAGE * ROW_H;
+  const emptyRows = BIND_PER_PAGE - pageItems.length;
+  const emptyRowHTML = '<tr style="height:48px;border-bottom:1px solid rgba(201,168,76,.04)"><td colspan="5"></td></tr>';
 
   if (!total) {
     wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">🔗</div><p>No bindings yet</p></div>';
     return;
   }
 
+  const thStyle = 'padding:.75rem 1rem;text-align:left;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600';
+
   const paginationHTML = totalPages > 1 ? `
-    <div style="padding:.8rem 1.5rem;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:1rem">
+    <div style="padding:.8rem 1.5rem;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
       <span style="font-size:.8rem;color:var(--text3)">Showing ${start+1}–${Math.min(start+BIND_PER_PAGE,total)} of ${total}</span>
-      <div style="display:flex;gap:.4rem">
-        <button onclick="bindChangePage(-1)" class="btn-refresh" style="padding:.35rem .8rem;font-size:.8rem;opacity:${bindCurrentPage===1?'.4':'1'}" ${bindCurrentPage===1?'disabled':''}>← Prev</button>
-        ${Array.from({length:totalPages},(_,i)=>i+1).map(pg=>`
-          <button onclick="bindGoToPage(${pg})" style="background:${pg===bindCurrentPage?'var(--gold)':'var(--bg3)'};color:${pg===bindCurrentPage?'#0a0a0a':'var(--text2)'};border:1px solid ${pg===bindCurrentPage?'var(--gold)':'var(--border)'};padding:.3rem .65rem;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:${pg===bindCurrentPage?'700':'400'};cursor:pointer">${pg}</button>`).join('')}
-        <button onclick="bindChangePage(1)" class="btn-refresh" style="padding:.35rem .8rem;font-size:.8rem;opacity:${bindCurrentPage===totalPages?'.4':'1'}" ${bindCurrentPage===totalPages?'disabled':''}>Next →</button>
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+        <button onclick="bindChangePage(-1)" class="btn-refresh" style="padding:.35rem .8rem;font-size:.8rem${bindCurrentPage===1?';opacity:.4':''}" ${bindCurrentPage===1?'disabled':''}>← Prev</button>
+        ${Array.from({length:totalPages},(_,i)=>i+1).map(pg=>
+          `<button onclick="bindGoToPage(${pg})" style="background:${pg===bindCurrentPage?'var(--gold)':'var(--bg3)'};color:${pg===bindCurrentPage?'#0a0a0a':'var(--text2)'};border:1px solid ${pg===bindCurrentPage?'var(--gold)':'var(--border)'};padding:.3rem .65rem;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:${pg===bindCurrentPage?'700':'400'};cursor:pointer">${pg}</button>`
+        ).join('')}
+        <button onclick="bindChangePage(1)" class="btn-refresh" style="padding:.35rem .8rem;font-size:.8rem${bindCurrentPage===totalPages?';opacity:.4':''}" ${bindCurrentPage===totalPages?'disabled':''}>Next →</button>
       </div>
     </div>` : '';
 
   wrap.innerHTML = `
-    <table style="width:100%;border-collapse:collapse;table-layout:fixed">
-      <colgroup>
-        <col style="width:20%"><col style="width:25%"><col style="width:15%"><col style="width:20%"><col style="width:20%">
-      </colgroup>
-      <thead style="display:table;width:100%;table-layout:fixed">
+    <table style="width:100%;border-collapse:collapse">
+      <thead>
         <tr style="border-bottom:1px solid var(--border)">
-          <th style="padding:.75rem 1rem;text-align:left;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600">Package</th>
-          <th style="padding:.75rem 1rem;text-align:left;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600">Car</th>
-          <th style="padding:.75rem 1rem;text-align:left;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600">Plate</th>
-          <th style="padding:.75rem 1rem;text-align:left;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600">Bound Date</th>
+          <th style="${thStyle}">Package</th>
+          <th style="${thStyle}">Car</th>
+          <th style="${thStyle}">Plate</th>
+          <th style="${thStyle}">Bound Date</th>
           <th style="padding:.75rem 1rem;text-align:center;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600">Action</th>
         </tr>
       </thead>
-      <tbody style="display:block;height:${fixedH}px;overflow-y:auto">
-        ${pageItems.map(b=>`
-          <tr style="display:table;width:100%;table-layout:fixed;border-bottom:1px solid rgba(201,168,76,.06);transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,.02)'" onmouseout="this.style.background='transparent'">
-            <td style="padding:.85rem 1rem"><span style="font-weight:700;color:var(--gold);font-family:'AudiType',sans-serif">${b.pkgCode}</span></td>
-            <td style="padding:.85rem 1rem;font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${b.carName}</td>
-            <td style="padding:.85rem 1rem;font-family:'AudiType',sans-serif;font-size:.85rem;color:var(--gold)">${b.carPlate||'—'}</td>
-            <td style="padding:.85rem 1rem;font-size:.78rem;color:var(--text3)">${b.boundAt ? new Date(b.boundAt).toLocaleDateString('en-US',{day:'2-digit',month:'short',year:'numeric'}) : '—'}</td>
-            <td style="padding:.85rem 1rem;text-align:center"><button onclick="deleteBinding('${b.id}')" class="act-btn danger" style="font-size:.75rem">🗑 Remove</button></td>
+      <tbody>
+        ${pageItems.map(b => `
+          <tr style="height:48px;border-bottom:1px solid rgba(201,168,76,.06);transition:background .15s"
+            onmouseover="this.style.background='rgba(255,255,255,.025)'"
+            onmouseout="this.style.background='transparent'">
+            <td style="padding:.6rem 1rem;font-weight:700;color:var(--gold);font-family:'AudiType',sans-serif">${b.pkgCode}</td>
+            <td style="padding:.6rem 1rem;font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">${b.carName}</td>
+            <td style="padding:.6rem 1rem;font-family:'AudiType',sans-serif;font-size:.85rem;color:var(--gold)">${b.carPlate||'—'}</td>
+            <td style="padding:.6rem 1rem;font-size:.78rem;color:var(--text3)">${b.boundAt ? new Date(b.boundAt).toLocaleDateString('en-US',{day:'2-digit',month:'short',year:'numeric'}) : '—'}</td>
+            <td style="padding:.6rem 1rem;text-align:center">
+              <button onclick="deleteBinding('${b.id}')" class="act-btn danger" style="font-size:.75rem">🗑 Remove</button>
+            </td>
           </tr>`).join('')}
+        ${Array(emptyRows).fill(emptyRowHTML).join('')}
       </tbody>
     </table>
     ${paginationHTML}`;
