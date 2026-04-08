@@ -473,8 +473,22 @@
       </div>
     </div>
 
-    <!-- Package Cards -->
-    <div id="pkg-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem"></div>
+    <!-- Package Table -->
+    <div class="table-wrap" style="margin-bottom:2rem">
+      <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+        <h3 style="font-size:.9rem;font-weight:600">Package List</h3>
+        <span id="pkg-table-count" style="font-size:.78rem;color:var(--text3)">0 packages</span>
+      </div>
+      <div id="pkg-grid"></div>
+      <div id="pkg-pagination" style="display:none;padding:.8rem 1.5rem;border-top:1px solid var(--border);align-items:center;justify-content:space-between;gap:1rem">
+        <span id="pkg-page-info" style="font-size:.8rem;color:var(--text3)"></span>
+        <div style="display:flex;gap:.4rem">
+          <button id="pkg-prev-btn" onclick="pkgChangePage(-1)" class="btn-refresh" style="padding:.35rem .8rem;font-size:.8rem">← Prev</button>
+          <div id="pkg-page-btns" style="display:flex;gap:.3rem"></div>
+          <button id="pkg-next-btn" onclick="pkgChangePage(1)" class="btn-refresh" style="padding:.35rem .8rem;font-size:.8rem">Next →</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Package-Car Binding -->
     <div class="table-wrap">
@@ -2290,36 +2304,107 @@ async function loadPackages() {
 }
 
 function renderPackages() {
+  pkgCurrentPage = 1;
+  renderPackagesPage();
+}
+
+let pkgCurrentPage = 1;
+const PKG_PER_PAGE = 10;
+
+function renderPackagesPage() {
   const grid = document.getElementById('pkg-grid');
+  const countEl = document.getElementById('pkg-table-count');
+  const pagination = document.getElementById('pkg-pagination');
+
   if (!adminPackages.length) {
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text3)"><div style="font-size:2rem;margin-bottom:.8rem">📦</div><p>No packages yet. Click "Add Package" to create one.</p></div>';
+    grid.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text3)"><div style="font-size:2rem;margin-bottom:.8rem">📦</div><p>No packages yet. Click "Add Package" to create one.</p></div>';
+    if (countEl) countEl.textContent = '0 packages';
+    if (pagination) pagination.style.display = 'none';
     return;
   }
+
+  const total = adminPackages.length;
+  const totalPages = Math.ceil(total / PKG_PER_PAGE);
+  pkgCurrentPage = Math.min(pkgCurrentPage, totalPages);
+  const start = (pkgCurrentPage - 1) * PKG_PER_PAGE;
+  const pageItems = adminPackages.slice(start, start + PKG_PER_PAGE);
+
+  if (countEl) countEl.textContent = total + ' package' + (total !== 1 ? 's' : '');
+
   const durLabel = {daily:'Daily',weekly:'Weekly (7d)',monthly:'Monthly (30d)',custom:'Custom'};
-  grid.innerHTML = adminPackages.map(p => `
-    <div style="background:var(--bg2);border:1px solid var(--border);padding:1.5rem;position:relative;overflow:hidden;transition:border .2s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
-      <div style="position:absolute;top:1rem;right:1rem;display:flex;gap:.3rem">
-        <button onclick="openEditPackage('${p.id}')" class="act-btn" style="font-size:.72rem;padding:.25rem .5rem">✏️</button>
-        <button onclick="deletePkg('${p.id}','${p.code}')" class="act-btn danger" style="font-size:.72rem;padding:.25rem .5rem">🗑</button>
-      </div>
-      <div style="font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.3rem">${durLabel[p.duration]||p.duration}</div>
-      <div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;margin-bottom:.2rem">${p.code}</div>
-      <div style="font-size:.78rem;color:var(--text3);margin-bottom:1rem">${p.desc||''}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;border-top:1px solid var(--border);padding-top:.8rem">
-        <div style="text-align:center">
-          <div style="font-family:'AudiType',sans-serif;font-size:1.1rem;font-weight:900;color:var(--gold)">฿${(p.price||0).toLocaleString()}</div>
-          <div style="font-size:.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em">Price</div>
-        </div>
-        <div style="text-align:center">
-          <div style="font-family:'AudiType',sans-serif;font-size:1.1rem;font-weight:900;color:var(--text)">฿${(p.insurance||0).toLocaleString()}</div>
-          <div style="font-size:.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em">/day ins.</div>
-        </div>
-        <div style="text-align:center">
-          <div style="font-family:'AudiType',sans-serif;font-size:1.1rem;font-weight:900;color:var(--text)">฿${(p.deposit||0).toLocaleString()}</div>
-          <div style="font-size:.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em">Deposit</div>
-        </div>
-      </div>
-    </div>`).join('');
+
+  grid.innerHTML = `
+    <table style="width:100%;border-collapse:collapse">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border)">
+          <th style="padding:.75rem 1rem;text-align:left;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600">Code</th>
+          <th style="padding:.75rem 1rem;text-align:left;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600">Duration</th>
+          <th style="padding:.75rem 1rem;text-align:right;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600">Price</th>
+          <th style="padding:.75rem 1rem;text-align:right;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600">Insurance/day</th>
+          <th style="padding:.75rem 1rem;text-align:right;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600">Deposit</th>
+          <th style="padding:.75rem 1rem;text-align:left;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600">Description</th>
+          <th style="padding:.75rem 1rem;text-align:center;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${pageItems.map((p, i) => `
+          <tr style="border-bottom:1px solid rgba(201,168,76,.06);transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,.02)'" onmouseout="this.style.background='transparent'">
+            <td style="padding:.85rem 1rem">
+              <div style="font-family:'Playfair Display',serif;font-size:.95rem;font-weight:700;color:var(--text)">${p.code}</div>
+              ${p.customDays ? `<div style="font-size:.72rem;color:var(--text3);margin-top:.1rem">${p.customDays} days</div>` : ''}
+            </td>
+            <td style="padding:.85rem 1rem">
+              <span style="font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.2rem .6rem;border:1px solid var(--border);color:var(--gold)">${durLabel[p.duration]||p.duration}</span>
+            </td>
+            <td style="padding:.85rem 1rem;text-align:right;font-family:'AudiType',sans-serif;font-size:1rem;font-weight:900;color:var(--gold)">฿${(p.price||0).toLocaleString()}</td>
+            <td style="padding:.85rem 1rem;text-align:right;font-family:'AudiType',sans-serif;font-size:.9rem;color:var(--text2)">${p.insurance ? '฿'+p.insurance.toLocaleString() : '—'}</td>
+            <td style="padding:.85rem 1rem;text-align:right;font-family:'AudiType',sans-serif;font-size:.9rem;color:var(--text2)">${p.deposit ? '฿'+p.deposit.toLocaleString() : '—'}</td>
+            <td style="padding:.85rem 1rem;font-size:.82rem;color:var(--text3);max-width:200px">${p.desc||'—'}</td>
+            <td style="padding:.85rem 1rem;text-align:center">
+              <div class="action-btns" style="justify-content:center">
+                <button onclick="openEditPackage('${p.id}')" class="act-btn">✏️ Edit</button>
+                <button onclick="deletePkg('${p.id}','${p.code}')" class="act-btn danger">🗑</button>
+              </div>
+            </td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+
+  // Pagination
+  if (totalPages > 1) {
+    pagination.style.display = 'flex';
+    document.getElementById('pkg-page-info').textContent =
+      `Showing ${start+1}–${Math.min(start+PKG_PER_PAGE, total)} of ${total}`;
+
+    // Page number buttons
+    const btnWrap = document.getElementById('pkg-page-btns');
+    btnWrap.innerHTML = Array.from({length: totalPages}, (_, i) => i+1).map(pg => `
+      <button onclick="pkgGoToPage(${pg})" style="
+        background:${pg===pkgCurrentPage?'var(--gold)':'var(--bg3)'};
+        color:${pg===pkgCurrentPage?'#0a0a0a':'var(--text2)'};
+        border:1px solid ${pg===pkgCurrentPage?'var(--gold)':'var(--border)'};
+        padding:.3rem .65rem;font-family:'DM Sans',sans-serif;font-size:.8rem;
+        font-weight:${pg===pkgCurrentPage?'700':'400'};cursor:pointer;transition:all .2s
+      ">${pg}</button>`).join('');
+
+    document.getElementById('pkg-prev-btn').disabled = pkgCurrentPage === 1;
+    document.getElementById('pkg-prev-btn').style.opacity = pkgCurrentPage === 1 ? '.4' : '1';
+    document.getElementById('pkg-next-btn').disabled = pkgCurrentPage === totalPages;
+    document.getElementById('pkg-next-btn').style.opacity = pkgCurrentPage === totalPages ? '.4' : '1';
+  } else {
+    pagination.style.display = 'none';
+  }
+}
+
+function pkgChangePage(dir) {
+  const totalPages = Math.ceil(adminPackages.length / PKG_PER_PAGE);
+  pkgCurrentPage = Math.max(1, Math.min(totalPages, pkgCurrentPage + dir));
+  renderPackagesPage();
+}
+
+function pkgGoToPage(pg) {
+  pkgCurrentPage = pg;
+  renderPackagesPage();
 }
 
 function openAddPackage() {
