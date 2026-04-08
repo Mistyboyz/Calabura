@@ -2397,13 +2397,32 @@ async function loadBindings() {
 }
 
 async function openBindPackage() {
-  // Populate selects with visible option styling
+  // Ensure cars are loaded (user may not have visited Cars tab yet)
+  if (!adminCars.length) {
+    try {
+      const res = await fetch(`${FIREBASE_URL_CARS}/cars.json`);
+      const data = res.ok ? await res.json() : null;
+      adminCars = data ? Object.values(data).sort((a,b)=>a.id-b.id) : [];
+    } catch(e) { adminCars = []; }
+  }
+
+  // Ensure packages are loaded
+  if (!adminPackages.length) {
+    try {
+      const res = await fetch(`${FIREBASE_URL}/packages.json`);
+      const data = res.ok ? await res.json() : null;
+      adminPackages = data ? Object.values(data) : [];
+    } catch(e) { adminPackages = []; }
+  }
+
   const pkgSel = document.getElementById('bind-pkg-select');
   pkgSel.innerHTML = '<option value="" style="background:#1e1e1e;color:#f0ede8">— Choose package —</option>' +
     adminPackages.map(p=>`<option value="${p.id}" style="background:#1e1e1e;color:#f0ede8">${p.code} · ${p.duration}</option>`).join('');
+
   const carSel = document.getElementById('bind-car-select');
   carSel.innerHTML = '<option value="" style="background:#1e1e1e;color:#f0ede8">— Choose car —</option>' +
     adminCars.map(c=>`<option value="${c.id}" style="background:#1e1e1e;color:#f0ede8">${c.name}${c.plate?' ('+c.plate+')':''}</option>`).join('');
+
   document.getElementById('bind-err').style.display = 'none';
   document.getElementById('bind-modal-overlay').style.display = 'flex';
 }
@@ -2439,10 +2458,27 @@ function closeBindModal() { document.getElementById('bind-modal-overlay').style.
 let _abSelectedCar = null, _abSelectedPkg = null;
 
 async function openAdminBooking() {
+  // Ensure cars loaded
+  if (!adminCars.length) {
+    try {
+      const res = await fetch(`${FIREBASE_URL_CARS}/cars.json`);
+      const data = res.ok ? await res.json() : null;
+      adminCars = data ? Object.values(data).sort((a,b)=>a.id-b.id) : [];
+    } catch(e) { adminCars = []; }
+  }
+  // Ensure packages loaded
+  if (!adminPackages.length) {
+    try {
+      const res = await fetch(`${FIREBASE_URL}/packages.json`);
+      const data = res.ok ? await res.json() : null;
+      adminPackages = data ? Object.values(data) : [];
+    } catch(e) { adminPackages = []; }
+  }
+
   // Populate cars
   const carSel = document.getElementById('ab-car');
   carSel.innerHTML = '<option value="">— Choose car —</option>' +
-    adminCars.filter(c=>c.id).map(c=>`<option value="${c.id}">${c.name}${c.plate?' · '+c.plate:''} · ฿${(c.price||0).toLocaleString()}/day</option>`).join('');
+    adminCars.filter(c=>c.id).map(c=>`<option value="${c.id}">${c.name}${c.plate?' · '+c.plate:''}</option>`).join('');
   // Populate packages
   const pkgSel = document.getElementById('ab-package');
   pkgSel.innerHTML = '<option value="">— No package —</option>' +
